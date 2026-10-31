@@ -21,7 +21,7 @@ window.NOMZ = {
   // How customers can receive orders at checkout.
   // ["Pickup"] = pickup only. ["Pickup", "Delivery"] = customer chooses
   // (Delivery asks for an address on the Square payment page).
-  ORDER_TYPES: ["Pickup"],
+  ORDER_TYPES: ["Pickup", "Delivery"],
 
   // Kitchen hours (24h clock), used for the "Open now" badge.
   // 0 = Sunday … 6 = Saturday. null = closed.

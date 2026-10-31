@@ -338,6 +338,16 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--parchment);border-radius:999px;padding:4px;margin:18px 0 4px}
 .seg button{border:0;background:transparent;border-radius:999px;padding:10px;font-weight:600;cursor:pointer;color:var(--cocoa-soft)}
 .seg button[aria-checked="true"]{background:var(--barberry);color:#fff}
+.cust{margin-top:16px}
+.cust h5{margin:0 0 10px;font-size:16px;font-weight:700}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cf{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;font-weight:600;font-size:14px}
+.cf em{font-style:normal;font-weight:400;color:var(--cocoa-soft)}
+.cf input,.cf select{width:100%;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--parchment);color:var(--cocoa);font:16px var(--body)}
+.cf input:focus,.cf select:focus{outline:none;border-color:var(--saffron)}
+.cf input.bad{border-color:var(--ribbon);background:color-mix(in srgb,var(--ribbon) 6%,var(--parchment))}
+.total.sub{font-weight:500;font-size:16px;color:var(--cocoa-soft)}
+@media (max-width:380px){.cgrid{grid-template-columns:1fr;gap:0}}
 .onote{display:flex;flex-direction:column;gap:6px;margin:16px 0 10px;font-weight:600;font-size:14px}
 .onote em{font-style:normal;font-weight:400;color:var(--cocoa-soft)}
 .onote textarea{width:100%;padding:11px 13px;border-radius:12px;border:1.5px solid var(--line);background:var(--parchment);color:var(--cocoa);font:15px var(--body);resize:vertical}
@@ -580,6 +590,7 @@ async function loadLive(){
   try{
     const r = await fetch(C.API_URL + "?action=list", {cache:"no-store"});
     const j = await r.json();
+    if (j.ok && j.deliveryFee !== undefined){ deliveryFee = Number(j.deliveryFee) || 0; renderCart(); }
     if (j.ok && Array.isArray(j.items) && j.items.length){
       MENU = clean(j.items);
       try{ localStorage.setItem("nomz_menu_cache", JSON.stringify(j.items)); }catch(e){}
@@ -696,7 +707,17 @@ scrim.onclick = closeDrawer;
 document.addEventListener("keydown", e => { if (e.key === "Escape" && drawer.classList.contains("on")) closeDrawer(); });
 
 const TYPES = (C.ORDER_TYPES && C.ORDER_TYPES.length) ? C.ORDER_TYPES : ["Pickup"];
-let orderType = TYPES[0], orderNote = "";
+let orderType = TYPES[0], orderNote = "", deliveryFee = 0;
+let cust = {name:"", phone:"", line1:"", line2:"", city:"", state:"VA", zip:""};
+try{ Object.assign(cust, JSON.parse(localStorage.getItem("nomz_customer") || "{}")); }catch(e){}
+const saveCust = () => { try{ localStorage.setItem("nomz_customer", JSON.stringify(cust)); }catch(e){} };
+const isDelivery = () => orderType === "Delivery";
+const fee = () => isDelivery() ? deliveryFee : 0;
+
+function fld(key, label, opts = {}){
+  return `<label class="cf ${opts.cls || ""}"><span>${label}${opts.optional ? " <em>(optional)</em>" : ""}</span>
+    <input data-c="${key}" value="${esc(cust[key])}" ${opts.attrs || ""}></label>`;
+}
 
 function renderCart(){
   const lines = cartLines(), n = cartCount(), total = cartTotal();
@@ -722,26 +743,66 @@ function renderCart(){
     <button class="back" type="button" onclick="document.getElementById('closeDrawer').click()">+ Add more dishes</button>
     ${TYPES.length > 1 ? `<div class="seg" role="radiogroup" aria-label="Pickup or delivery">${TYPES.map(t =>
       `<button type="button" role="radio" aria-checked="${t === orderType}" data-type="${esc(t)}">${esc(t)}</button>`).join("")}</div>` : ""}
-    <label class="onote"><span>Note for the kitchen <em>(optional)</em></span>
-      <textarea id="orderNote" rows="2" maxlength="300" placeholder="Allergies, extra rice, pickup time…">${esc(orderNote)}</textarea></label>`;
+    <div class="cust">
+      <h5>${isDelivery() ? "Delivery details" : "Pickup details"}</h5>
+      <div class="cgrid">
+        ${fld("name", "Name", {attrs: 'autocomplete="name" required'})}
+        ${fld("phone", "Phone", {attrs: 'type="tel" inputmode="tel" autocomplete="tel" placeholder="202-555-0123" required'})}
+      </div>
+      ${isDelivery() ? `
+        ${fld("line1", "Street address", {attrs: 'autocomplete="address-line1" required'})}
+        <div class="cgrid">
+          ${fld("line2", "Apt / suite", {optional: true, attrs: 'autocomplete="address-line2"'})}
+          ${fld("city", "City", {attrs: 'autocomplete="address-level2" required'})}
+        </div>
+        <div class="cgrid">
+          <label class="cf"><span>State</span><select data-c="state" autocomplete="address-level1">${["VA","DC","MD"].map(s => `<option ${cust.state===s?"selected":""}>${s}</option>`).join("")}</select></label>
+          ${fld("zip", "ZIP code", {attrs: 'inputmode="numeric" autocomplete="postal-code" maxlength="10" required'})}
+        </div>` : ""}
+    </div>
+    <label class="onote"><span>${isDelivery() ? "Note for the kitchen or driver" : "Note for the kitchen"} <em>(optional)</em></span>
+      <textarea id="orderNote" rows="2" maxlength="300" placeholder="${isDelivery() ? "Gate code, allergies, extra rice…" : "Allergies, extra rice, pickup time…"}">${esc(orderNote)}</textarea></label>`;
+  const grand = total + fee();
   foot.innerHTML = `
     <div class="total"><span>Subtotal</span><span>${money(total)}</span></div>
-    <p class="note">${TYPES.length > 1 ? "" : `${esc(TYPES[0])} order. `}Tax is added on the secure Square payment page.</p>
+    ${isDelivery() && deliveryFee > 0 ? `<div class="total sub"><span>Delivery fee</span><span>${money(deliveryFee)}</span></div>` : ""}
+    <p class="note">Tax is added on the secure Square payment page.</p>
     <p class="form-error" id="payErr" hidden></p>
-    <button class="btn btn-red" type="button" id="payBtn">Checkout ${money(total)}</button>`;
+    <button class="btn btn-red" type="button" id="payBtn">Checkout ${money(grand)}</button>`;
 
   body.querySelectorAll("[data-type]").forEach(b => b.onclick = () => { orderType = b.dataset.type; renderCart(); });
+  body.querySelectorAll("[data-c]").forEach(el => el.addEventListener("input", () => { cust[el.dataset.c] = el.value; saveCust(); el.classList.remove("bad"); const e = $("#payErr"); if (e) e.hidden = true; }));
   $("#orderNote").oninput = e => { orderNote = e.target.value; };
   $("#payBtn").onclick = startCheckout;
+}
+
+function checkCustomer(){
+  const digits = String(cust.phone).replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
+  if (!cust.name.trim()) return ["name", "Please add your name."];
+  if (digits.length !== 10) return ["phone", "Please add a 10-digit phone number so we can reach you."];
+  if (isDelivery()){
+    if (!cust.line1.trim()) return ["line1", "Please add your street address."];
+    if (!cust.city.trim()) return ["city", "Please add your city."];
+    if (!/^\d{5}(-\d{4})?$/.test(cust.zip.trim())) return ["zip", "Please add a valid 5-digit ZIP code."];
+  }
+  return null;
 }
 
 async function startCheckout(){
   const btn = $("#payBtn"), err = $("#payErr");
   err.hidden = true;
+  $("#drawerBody").querySelectorAll(".bad").forEach(e => e.classList.remove("bad"));
+  const problem = checkCustomer();
+  if (problem){
+    const el = $(`[data-c="${problem[0]}"]`);
+    if (el){ el.classList.add("bad"); el.focus(); el.scrollIntoView({block:"center", behavior:"smooth"}); }
+    err.textContent = problem[1]; err.hidden = false; return;
+  }
   if (!C.API_URL){
-    err.innerHTML = `Online checkout isn't connected yet. You can still <a href="${esc(C.STORE_URL)}">order on our Square store</a>.`;
+    err.innerHTML = `Online checkout isn't connected yet. Call or text <a href="tel:+12028884120">202-888-4120</a>.`;
     err.hidden = false; return;
   }
+  const label = btn.textContent;
   btn.disabled = true; btn.textContent = "Opening secure checkout…";
   try{
     const r = await fetch(C.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
@@ -749,15 +810,16 @@ async function startCheckout(){
         action: "checkout",
         items: cartLines().map(l => ({id: l.item.id, qty: l.q})),
         method: orderType, note: orderNote,
+        customer: { name: cust.name, phone: cust.phone,
+          address: isDelivery() ? { line1: cust.line1, line2: cust.line2, city: cust.city, state: cust.state || "VA", zip: cust.zip } : null },
         returnUrl: location.origin + location.pathname + "?order=done"
       })});
     const j = await r.json();
     if (!j.ok || !j.url) throw new Error(j.error || "Checkout failed");
-    try{ localStorage.setItem("nomz_pending", "1"); }catch(e){}
     location.href = j.url;
   }catch(ex){
     err.innerHTML = `${esc(ex.message && ex.message !== "Failed to fetch" ? ex.message : "We couldn't open checkout. Check your connection and try again.")} Or call or text <a href="tel:+12028884120">202-888-4120</a>.`;
-    err.hidden = false; btn.disabled = false; btn.textContent = `Checkout ${money(cartTotal())}`;
+    err.hidden = false; btn.disabled = false; btn.textContent = label;
   }
 }
 
@@ -765,6 +827,10 @@ async function startCheckout(){
 function handleReturn(){
   const qs = new URLSearchParams(location.search);
   if (qs.get("order") !== "done") return;
+  const ref = qs.get("ref");
+  if (ref && C.API_URL){
+    fetch(C.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({action:"confirm", ref})}).catch(() => {});
+  }
   cart = {}; orderNote = ""; saveCart();
   try{ localStorage.removeItem("nomz_pending"); }catch(e){}
   history.replaceState(null, "", location.pathname + location.hash);
