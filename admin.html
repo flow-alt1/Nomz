@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Menu admin | Nomz Kitchen</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--parchment:#FBF3E6;--paper:#FFFAF2;--cocoa:#3B1A12;--soft:#6E5248;--barberry:#741b2b;--night:#4A0F1B;--saffron:#D9A23A;--ribbon:#B3242F;--leaf:#5C7A35;--line:#EADBC8;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--parchment:#1E1210;--paper:#281915;--cocoa:#F6E9DA;--soft:#C9B2A4;--line:#43302A;--barberry:#C2475B;color-scheme:dark}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--parchment);color:var(--cocoa);font:16px/1.55 "Vazirmatn",system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2{font-family:"Young Serif",Georgia,serif;font-weight:400;margin:0}
+.fa{direction:rtl;unicode-bidi:isolate}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px;border-radius:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:999px;padding:11px 20px;font-weight:600;font-size:15px;font-family:inherit;cursor:pointer;text-decoration:none}
+.red{background:var(--barberry);color:#fff}.red:hover{background:var(--night)}
+.gold{background:var(--saffron);color:#2A140C}
+.ghost{background:transparent;color:var(--cocoa);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn[disabled]{opacity:.55;pointer-events:none}
+.danger{background:transparent;color:var(--ribbon);box-shadow:inset 0 0 0 1.5px currentColor}
+
+/* login */
+.login{min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--night)}
+.login .card{width:min(400px,100%);background:var(--paper);border-radius:22px;padding:32px;text-align:center}
+.login img{width:130px;margin:0 auto 10px}
+.login h1{font-size:28px;margin-bottom:6px}
+.login p{color:var(--soft);margin:0 0 20px}
+.err{color:var(--ribbon);font-weight:600;font-size:14px;margin:10px 0 0}
+
+/* app */
+header{position:sticky;top:0;z-index:10;background:var(--night);color:#FBEFE2;padding-top:env(safe-area-inset-top,0px)}
+header .in{max-width:1100px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px}
+header img{width:42px}
+header h1{font-size:20px;flex:1}
+header a,header button{color:#FBEFE2}
+main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.bar p{margin:4px 0 0;color:var(--soft)}
+.list{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px}
+.row img{width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--line)}
+.row h3{margin:0;font-size:16px;font-weight:600}
+.row small{color:var(--soft)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.tag{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--parchment)}
+.tag.off{background:color-mix(in srgb,var(--ribbon) 14%,transparent);color:var(--ribbon)}
+.tag.star{background:color-mix(in srgb,var(--saffron) 25%,transparent)}
+.acts{display:flex;gap:8px}
+.acts .btn{padding:8px 14px;font-size:14px}
+@media (max-width:620px){.row{grid-template-columns:56px 1fr}.row img{width:56px;height:56px}.acts{grid-column:1/-1}.acts .btn{flex:1}}
+
+/* editor */
+.scrim{position:fixed;inset:0;background:rgba(25,8,4,.5);z-index:20;display:none}
+.scrim.on{display:block}
+.editor{position:fixed;z-index:21;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--paper);transform:translateX(102%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.editor.on{transform:none}
+.eh{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line)}
+.eh h2{font-size:24px}
+.x{width:38px;height:38px;border-radius:50%;border:0;background:var(--parchment);font-size:22px;cursor:pointer;color:var(--cocoa)}
+.eb{flex:1;overflow-y:auto;padding:18px 22px}
+.ef{display:flex;gap:10px;padding:14px 22px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.ef .red{flex:1}
+.f{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.f label{font-weight:600;font-size:14px}
+.f label em{font-style:normal;font-weight:400;color:var(--soft)}
+.f input,.f textarea{width:100%;padding:11px 13px;border-radius:11px;border:1.5px solid var(--line);background:var(--parchment);color:var(--cocoa);font:16px "Vazirmatn",sans-serif}
+.f textarea{min-height:84px;resize:vertical}
+.f input:focus,.f textarea:focus{outline:none;border-color:var(--saffron)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fetch{display:flex;gap:8px}
+.fetch input{flex:1;min-width:0;padding:11px 13px;border-radius:11px;border:1.5px solid var(--line);background:var(--paper);color:var(--cocoa);font:15px "Vazirmatn",sans-serif}
+.hbtn{color:#FBEFE2;background:transparent;border:0;border-radius:999px;padding:8px 14px;font:600 14px "Vazirmatn",sans-serif;text-decoration:none;white-space:nowrap;cursor:pointer;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3)}
+.hbtn.plain{box-shadow:none}
+header h1{white-space:nowrap}
+@media (max-width:420px){header h1{font-size:17px}header .in{gap:8px}}
+.hint{font-size:13px;color:var(--soft);margin:-6px 0 14px}
+.checks{display:flex;gap:20px;flex-wrap:wrap;margin:6px 0 14px}
+.checks label{display:flex;gap:8px;align-items:center;font-weight:600;font-size:15px}
+.checks input{width:20px;height:20px;accent-color:var(--barberry)}
+.preview{display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:center;margin:-4px 0 14px}
+.preview img{width:90px;height:90px;border-radius:12px;object-fit:cover;background:var(--line)}
+.box{background:var(--parchment);border-radius:14px;padding:14px;margin-bottom:18px}
+.box b{display:block;margin-bottom:6px}
+@media (max-width:520px){.g2{grid-template-columns:1fr;gap:0}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;background:var(--cocoa);color:var(--parchment);padding:11px 18px;border-radius:12px;transition:.25s;z-index:40;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.notice{max-width:620px;margin:60px auto;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:28px}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script>
+(() => {
+const C = window.NOMZ, root = document.getElementById("root");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const money = n => n === "" || n == null || isNaN(n) ? "No price" : "$" + Number(n).toFixed(2);
+let pw = sessionStorage.getItem("nomz_admin") || "";
+let items = [];
+
+function toast(m){ const t = document.getElementById("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("on"), 2400); }
+
+async function api(action, extra){
+  const r = await fetch(C.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({action, password: pw, ...extra})});
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error || "Something went wrong");
+  return j;
+}
+
+/* ---------------- Not connected ---------------- */
+if (!C.API_URL){
+  root.innerHTML = `<div class="notice"><h1 style="font-size:28px;margin-bottom:10px">Admin isn't connected yet</h1>
+    <p>Deploy the Apps Script in <b>apps-script/Code.gs</b> as a web app, then paste its <b>/exec</b> URL into <b>config.js</b> as <code>API_URL</code>. The README has the steps.</p>
+    <a class="btn red" href="index.html">Back to the website</a></div>`;
+  return;
+}
+
+/* ---------------- Login ---------------- */
+function showLogin(msg){
+  root.innerHTML = `<div class="login"><form class="card" id="lf">
+    <img src="assets/logo.webp" alt="Nomz Kitchen">
+    <h1>Menu admin</h1><p>Sign in to add or edit dishes.</p>
+    <div class="f" style="text-align:left"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required></div>
+    <button class="btn red" style="width:100%" id="lb">Sign in</button>
+    ${msg ? `<p class="err">${esc(msg)}</p>` : ""}
+  </form></div>`;
+  const f = document.getElementById("lf");
+  f.pw.focus();
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const b = document.getElementById("lb"); b.disabled = true; b.textContent = "Signing in…";
+    pw = f.pw.value;
+    try { await api("login"); sessionStorage.setItem("nomz_admin", pw); boot(); }
+    catch(err){ pw = ""; showLogin(err.message); }
+  };
+}
+
+/* ---------------- Dashboard ---------------- */
+async function boot(){
+  root.innerHTML = `<header><div class="in"><img src="assets/logo.webp" alt=""><h1>Menu admin</h1>
+      <a class="hbtn" href="index.html" target="_blank">View site</a>
+      <button class="hbtn plain" id="out">Log out</button></div></header>
+    <main>
+      <div class="bar"><div><h2 style="font-size:30px">Dishes</h2><p id="sum">Loading…</p></div>
+        <button class="btn red" id="addBtn">+ Add a dish</button></div>
+      <div class="list" id="list"></div>
+    </main>
+    <div class="scrim" id="scrim"></div>
+    <aside class="editor" id="ed" role="dialog" aria-modal="true" aria-labelledby="edT"></aside>`;
+  document.getElementById("out").onclick = () => { sessionStorage.removeItem("nomz_admin"); pw = ""; showLogin(); };
+  document.getElementById("addBtn").onclick = () => openEditor(null);
+  document.getElementById("scrim").onclick = closeEditor;
+  await load();
+}
+
+async function load(){
+  try { items = (await api("adminList")).items; render(); }
+  catch(err){ if (/password/i.test(err.message)) { sessionStorage.removeItem("nomz_admin"); showLogin(err.message); } else toast(err.message); }
+}
+
+function render(){
+  const shown = items.filter(x => x.available).length;
+  document.getElementById("sum").textContent = `${items.length} dishes, ${shown} shown on the website`;
+  document.getElementById("list").innerHTML = items.map(x => `
+    <div class="row">
+      <img src="${esc(x.image)}" alt="" loading="lazy">
+      <div><h3>${esc(x.nameEn)} <span class="fa" style="font-weight:400;color:var(--soft)">${esc(x.nameFa)}</span></h3>
+        <small>${esc(x.category)} &nbsp;${money(x.price)}</small>
+        <div class="tags">${x.available ? "" : `<span class="tag off">Hidden</span>`}${x.featured ? `<span class="tag star">Favorite</span>` : ""}<span class="tag">#${esc(x.sort)}</span></div></div>
+      <div class="acts">
+        <button class="btn ghost" data-toggle="${esc(x.id)}">${x.available ? "Hide" : "Show"}</button>
+        <button class="btn red" data-edit="${esc(x.id)}">Edit</button>
+      </div>
+    </div>`).join("") || `<p>No dishes yet. Add your first one.</p>`;
+}
+
+document.addEventListener("click", async e => {
+  const ed = e.target.closest("[data-edit]"), tg = e.target.closest("[data-toggle]");
+  if (ed) openEditor(items.find(x => x.id === ed.dataset.edit));
+  if (tg){
+    const it = items.find(x => x.id === tg.dataset.toggle);
+    tg.disabled = true;
+    try { await api("save", {item: {...it, available: !it.available, originalId: it.id}}); toast(it.available ? "Hidden from the website" : "Shown on the website"); await load(); }
+    catch(err){ toast(err.message); tg.disabled = false; }
+  }
+});
+
+/* ---------------- Editor ---------------- */
+function closeEditor(){ document.getElementById("ed").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
+
+function openEditor(it){
+  const isNew = !it; it = it || {available:true, featured:false};
+  const cats = [...new Set(items.map(x => x.category).filter(Boolean))];
+  const ed = document.getElementById("ed");
+  ed.innerHTML = `
+    <div class="eh"><h2 id="edT">${isNew ? "Add a dish" : "Edit dish"}</h2><button class="x" type="button" id="cx" aria-label="Close">&times;</button></div>
+    <form class="eb" id="ef" novalidate>
+      <div class="box">
+        <b>1. Paste the dish link from the Square store</b>
+        <div class="fetch"><input name="url" type="url" placeholder="https://nomzkitchen.square.site/product/…" value="${esc(it.url)}" required aria-label="Square product link">
+          <button class="btn gold" type="button" id="grab">Get details</button></div>
+        <p class="hint" style="margin:8px 0 0">Fills in the name, description, ingredients and photo from Square. Add the price yourself.</p>
+      </div>
+      <b style="display:block;margin-bottom:10px">2. Check the details</b>
+      <div class="g2">
+        <div class="f"><label>English name</label><input name="nameEn" value="${esc(it.nameEn)}" required></div>
+        <div class="f"><label>Persian name <em>(optional)</em></label><input name="nameFa" class="fa" value="${esc(it.nameFa)}"></div>
+      </div>
+      <div class="g2">
+        <div class="f"><label>Price ($)</label><input name="price" inputmode="decimal" placeholder="16.95" value="${esc(it.price)}"></div>
+        <div class="f"><label>Category</label><input name="category" list="catlist" placeholder="Stews" value="${esc(it.category)}"><datalist id="catlist">${cats.map(c => `<option value="${esc(c)}">`).join("")}</datalist></div>
+      </div>
+      <div class="f"><label>Description</label><textarea name="description">${esc(it.description)}</textarea></div>
+      <div class="f"><label>Ingredients <em>(optional)</em></label><textarea name="ingredients" style="min-height:64px">${esc(it.ingredients)}</textarea></div>
+      <div class="g2">
+        <div class="f"><label>Allergens <em>(optional)</em></label><input name="allergens" placeholder="Tree nuts, fish…" value="${esc(it.allergens)}"></div>
+        <div class="f"><label>Menu position <em>(1 = first)</em></label><input name="sort" inputmode="numeric" value="${esc(isNew ? "" : it.sort)}"></div>
+      </div>
+      <div class="f"><label>Photo URL</label><input name="image" type="url" value="${esc(it.image)}"></div>
+      <div class="preview"><img id="pv" src="${esc(it.image)}" alt=""><span class="hint" style="margin:0">Photo preview. Square photos come in automatically with Get details.</span></div>
+      <div class="checks">
+        <label><input type="checkbox" name="available" ${it.available !== false ? "checked" : ""}> Show on website</label>
+        <label><input type="checkbox" name="featured" ${it.featured ? "checked" : ""}> Customer favorite</label>
+      </div>
+      <p class="err" id="eErr" hidden></p>
+    </form>
+    <div class="ef">
+      ${isNew ? "" : `<button class="btn danger" type="button" id="del">Delete</button>`}
+      <button class="btn ghost" type="button" id="cancel">Cancel</button>
+      <button class="btn red" type="button" id="save">${isNew ? "Add to website" : "Save changes"}</button>
+    </div>`;
+  ed.classList.add("on"); document.getElementById("scrim").classList.add("on");
+  const f = document.getElementById("ef"), err = document.getElementById("eErr");
+  const fail = m => { err.textContent = m; err.hidden = false; };
+  document.getElementById("cx").onclick = closeEditor;
+  document.getElementById("cancel").onclick = closeEditor;
+  f.elements.image.addEventListener("input", () => document.getElementById("pv").src = f.elements.image.value);
+  (isNew ? f.elements.url : f.elements.nameEn).focus();
+
+  document.getElementById("grab").onclick = async () => {
+    const b = document.getElementById("grab"); err.hidden = true;
+    if (!f.elements.url.value.trim()) return fail("Paste the Square product link first.");
+    b.disabled = true; b.textContent = "Getting…";
+    try {
+      const d = (await api("scrape", {url: f.elements.url.value})).item;
+      const dup = items.find(x => x.id === d.id);
+      if (isNew && dup) fail(`“${dup.nameEn}” is already on the website. Saving will update it.`);
+      ["url","nameEn","nameFa","description","ingredients","allergens","image"].forEach(k => { if (d[k]) f.elements[k].value = d[k]; });
+      document.getElementById("pv").src = d.image || "";
+      if (!f.elements.price.value) f.elements.price.focus();
+      toast("Details filled in from Square");
+    } catch(ex){ fail(ex.message); }
+    b.disabled = false; b.textContent = "Get details";
+  };
+
+  document.getElementById("save").onclick = async () => {
+    err.hidden = true;
+    const v = n => f.elements[n].value.trim();
+    if (!v("url")) return fail("The Square product link is required.");
+    if (!v("nameEn")) return fail("Add the English name.");
+    if (v("price") && isNaN(Number(v("price")))) return fail("Price must be a number, like 16.95");
+    const b = document.getElementById("save"); b.disabled = true; b.textContent = "Saving…";
+    const item = {
+      originalId: it.id || "", url: v("url"), nameEn: v("nameEn"), nameFa: v("nameFa"), price: v("price"),
+      category: v("category"), description: v("description"), ingredients: v("ingredients"), allergens: v("allergens"),
+      sort: v("sort"), image: v("image"), available: f.elements.available.checked, featured: f.elements.featured.checked
+    };
+    try { await api("save", {item}); closeEditor(); toast(isNew ? "Dish added to the website" : "Changes saved"); await load(); }
+    catch(ex){ fail(ex.message); b.disabled = false; b.textContent = isNew ? "Add to website" : "Save changes"; }
+  };
+
+  const del = document.getElementById("del");
+  if (del) del.onclick = async () => {
+    if (!confirm(`Delete “${it.nameEn}” from the website? This doesn't change the Square store.`)) return;
+    del.disabled = true;
+    try { await api("delete", {id: it.id}); closeEditor(); toast("Dish deleted"); await load(); }
+    catch(ex){ fail(ex.message); del.disabled = false; }
+  };
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape") { const ed = document.getElementById("ed"); if (ed && ed.classList.contains("on")) closeEditor(); } });
+
+pw ? boot() : showLogin();
+})();
+</script>
+</body>
+</html>

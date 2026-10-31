@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nomz Kitchen | Authentic Persian home cooking in Northern Virginia</title>
+<meta name="description" content="Authentic Persian home cooking from the team behind Nomz Truck. Saffron rice, slow-cooked stews and catering in Northern Virginia. Order online.">
+<meta name="theme-color" content="#5A1220">
+<meta property="og:title" content="Nomz Kitchen | Persian home cooking">
+<meta property="og:description" content="From Nomz Truck to Nomz Kitchen. A new chapter, the same love for food.">
+<meta property="og:image" content="assets/logo.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/logo.webp">
+<style>
+/* ================= Tokens (taken from the logo) ================= */
+:root{
+  --parchment:#FBF3E6;   /* logo plate */
+  --paper:#FFFAF2;
+  --cocoa:#3B1A12;       /* logo lettering */
+  --cocoa-soft:#6E5248;
+  --barberry:#741b2b;    /* brand */
+  --night:#4A0F1B;       /* hero */
+  --ribbon:#B3242F;      /* apron ribbon */
+  --saffron:#D9A23A;     /* gold underline */
+  --crocus:#8A4DB5;      /* saffron flower, used once */
+  --leaf:#5C7A35;
+  --line:#EADBC8;
+  --display:"Young Serif", Georgia, serif;
+  --body:"Vazirmatn", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --wrap:1200px;
+  --r-lg:22px; --r-md:14px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --parchment:#1E1210; --paper:#281915; --cocoa:#F6E9DA; --cocoa-soft:#C9B2A4;
+    --line:#43302A; --barberry:#C2475B; color-scheme:dark;
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--parchment);color:var(--cocoa);font:17px/1.65 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:3px;border-radius:6px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 22px}
+.fa{font-family:"Vazirmatn",sans-serif;direction:rtl;unicode-bidi:isolate}
+h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:-.01em;margin:0}
+h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
+.lede{color:var(--cocoa-soft);font-size:18px;max-width:36em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:13px 24px;font:600 16px var(--body);text-decoration:none;cursor:pointer;transition:background .15s,transform .12s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.97)}
+.btn-gold{background:var(--saffron);color:#2A140C}
+.btn-gold:hover{background:#E9B652}
+.btn-red{background:var(--barberry);color:#fff}
+.btn-red:hover{background:var(--night)}
+.btn-line{background:transparent;color:inherit;box-shadow:inset 0 0 0 1.5px currentColor}
+.btn-line:hover{background:rgba(255,255,255,.08)}
+.btn[disabled]{opacity:.55;pointer-events:none}
+
+/* ================= Header ================= */
+.top{position:fixed;inset:0 0 auto;z-index:40;padding-top:env(safe-area-inset-top,0px);transition:background .25s,box-shadow .25s;color:#FBEFE2}
+.top.solid{background:color-mix(in srgb,var(--night) 94%,transparent);backdrop-filter:blur(12px);box-shadow:0 1px 0 rgba(255,255,255,.08)}
+.top .wrap{display:flex;align-items:center;gap:24px;height:70px}
+.mark{display:flex;align-items:center;gap:10px;text-decoration:none}
+.mark img{width:46px;height:46px}
+.mark span{font-family:var(--display);font-size:22px;line-height:1;white-space:nowrap}
+@media (max-width:420px){.mark span{font-size:18px}.mark img{width:40px;height:40px}.cart-btn{padding:9px 14px}.status{font-size:13px}}
+.top nav{display:flex;gap:24px;margin-left:auto}
+.top nav a{text-decoration:none;font-weight:500;font-size:15px;opacity:.85}
+.top nav a:hover{opacity:1}
+.cart-btn{position:relative;display:inline-flex;align-items:center;gap:8px;border:0;background:var(--saffron);color:#2A140C;border-radius:999px;padding:10px 18px;font-weight:600;cursor:pointer}
+.cart-btn .count{min-width:22px;height:22px;border-radius:11px;background:var(--night);color:#fff;font-size:12px;display:grid;place-items:center;padding:0 6px}
+.cart-btn.bump{animation:bump .4s}
+@keyframes bump{40%{transform:scale(1.12)}}
+@media (max-width:900px){.top nav{display:none}.cart-btn{margin-left:auto}}
+
+/* ================= Hero ================= */
+.hero{position:relative;background:var(--night);color:#FBEFE2;padding:calc(110px + env(safe-area-inset-top,0px)) 0 90px;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.09;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23F2C46B' stroke-width='1.2'%3E%3Cpath d='M36 14l6.4 15.6L58 36l-15.6 6.4L36 58l-6.4-15.6L14 36l15.6-6.4z'/%3E%3Crect x='22' y='22' width='28' height='28' transform='rotate(45 36 36)'/%3E%3Ccircle cx='0' cy='0' r='6'/%3E%3Ccircle cx='72' cy='0' r='6'/%3E%3Ccircle cx='0' cy='72' r='6'/%3E%3Ccircle cx='72' cy='72' r='6'/%3E%3C/g%3E%3C/svg%3E")}
+.hero::after{content:"";position:absolute;z-index:-1;width:900px;height:900px;right:-260px;top:-180px;border-radius:50%;background:radial-gradient(closest-side,rgba(217,162,58,.28),transparent 70%)}
+.hero .wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.status{display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 12px;border-radius:999px;background:rgba(255,255,255,.08);font-size:14px;font-weight:500;margin-bottom:26px}
+.status i{width:9px;height:9px;border-radius:50%;background:#7BC86C;box-shadow:0 0 0 4px rgba(123,200,108,.2)}
+.status.closed i{background:#E0806F;box-shadow:0 0 0 4px rgba(224,128,111,.2)}
+.hero h1{font-size:clamp(44px,6.6vw,86px);line-height:1.02;margin-bottom:24px;color:#FFF6EA}
+.hero p{font-size:clamp(17px,1.6vw,20px);color:#E6CDBF;max-width:31em;margin:0 0 34px}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap}
+.hero .ctas .btn-line{color:#FBEFE2}
+
+/* motion logo: the parts fly in and build the logo */
+.stage{position:relative;justify-self:center;width:min(520px,100%);aspect-ratio:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stage .glow{position:absolute;inset:8%;border-radius:50%;background:radial-gradient(closest-side,rgba(242,196,107,.35),transparent 72%);opacity:0;transform:scale(.6)}
+.stage .build{position:absolute;inset:0}
+.stage .pc,.stage .full{position:absolute;opacity:0;will-change:transform,opacity;user-select:none;-webkit-user-drag:none}
+.stage .full{inset:0;width:100%;height:100%;filter:drop-shadow(0 30px 40px rgba(0,0,0,.45))}
+.stage .sheen{position:absolute;inset:0;pointer-events:none;opacity:0;
+  -webkit-mask:url(assets/logo.webp) center/contain no-repeat;mask:url(assets/logo.webp) center/contain no-repeat;
+  background:linear-gradient(110deg,transparent 38%,rgba(255,250,235,.8) 50%,transparent 62%);background-size:300% 100%;background-position:120% 0}
+.stage .spark{position:absolute;left:50%;top:52%;width:9px;height:9px;margin:-4.5px;border-radius:50%;background:#F2C46B;box-shadow:0 0 10px #F2C46B;opacity:0}
+.steam{position:absolute;top:2%;right:16%;width:22%;height:22%;overflow:visible;pointer-events:none}
+.steam path{fill:none;stroke:rgba(255,246,234,.55);stroke-width:3;stroke-linecap:round;opacity:0}
+
+.stage.play .glow{animation:glow 1.2s ease-out .1s forwards}
+.stage.play .p-plate  {animation:inPlate .8s cubic-bezier(.2,1.3,.4,1) 0s both}
+.stage.play .p-apron  {transform-origin:30% 0;animation:inApron 1s cubic-bezier(.2,1.25,.4,1) .35s both}
+.stage.play .p-hat    {transform-origin:50% 100%;animation:inHat .9s cubic-bezier(.25,1.5,.45,1) .6s both}
+.stage.play .p-nomz   {animation:inRight .8s cubic-bezier(.2,1.2,.4,1) .8s both}
+.stage.play .p-kitchen{animation:inLeft .8s cubic-bezier(.2,1.2,.4,1) .95s both}
+.stage.play .p-banner {transform-origin:50% 50%;animation:inBanner .8s cubic-bezier(.2,1.35,.4,1) 1.1s both}
+.stage.play .p-flower {transform-origin:55% 60%;animation:inFlower .9s cubic-bezier(.2,1.4,.4,1) 1.3s both}
+.stage.play .p-leaves {transform-origin:0 100%;animation:inLeaves .7s cubic-bezier(.2,1.4,.4,1) 1.45s both}
+.stage.play .full{animation:fadeIn .35s ease-out 2.05s forwards}
+.stage.play .spark{animation:spark .9s ease-out 1.95s forwards}
+.stage.play .sheen{animation:sheen 1.4s ease-in-out 2.3s both}
+.stage.play .build{animation:bob 7s ease-in-out 2.6s infinite}
+.stage.play .steam path{animation:steam 4.5s ease-in-out 2.4s infinite}
+.stage.play .steam path:nth-child(2){animation-delay:3.9s}
+.stage.play .steam path:nth-child(3){animation-delay:5.4s}
+
+@keyframes glow{to{opacity:1;transform:none}}
+@keyframes inPlate{from{opacity:0;transform:scale(0) rotate(-200deg)}to{opacity:1;transform:none}}
+@keyframes inApron{0%{opacity:0;transform:translate(-75%,-55%) rotate(-55deg)}40%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes inHat{0%{opacity:0;transform:translate(25%,-160%) rotate(35deg)}35%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes inRight{from{opacity:0;transform:translateX(90%) skewX(-18deg)}to{opacity:1;transform:none}}
+@keyframes inLeft{from{opacity:0;transform:translateX(-90%) skewX(18deg)}to{opacity:1;transform:none}}
+@keyframes inBanner{0%{opacity:0;transform:translateY(60%) scaleX(.05)}30%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes inFlower{from{opacity:0;transform:scale(0) rotate(-140deg)}to{opacity:1;transform:none}}
+@keyframes inLeaves{from{opacity:0;transform:scale(0) rotate(50deg)}to{opacity:1;transform:none}}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes spark{0%{opacity:1;transform:rotate(var(--a)) translateX(0) scale(1)}100%{opacity:0;transform:rotate(var(--a)) translateX(var(--d)) scale(.2)}}
+@keyframes bob{50%{transform:translateY(-12px) rotate(1deg)}}
+@keyframes sheen{0%{opacity:1;background-position:120% 0}99%{opacity:1}100%{opacity:0;background-position:-20% 0}}
+@keyframes steam{0%{opacity:0;transform:translateY(14px)}30%{opacity:1}100%{opacity:0;transform:translateY(-40px)}}
+@media (prefers-reduced-motion:reduce){
+  .stage *, .stage.play *{animation:none!important}
+  .stage .full{opacity:1}.stage .pc,.stage .sheen,.stage .spark{display:none}
+}
+@media (max-width:900px){
+  .hero{padding:calc(92px + env(safe-area-inset-top,0px)) 0 64px;text-align:center}
+  .hero .wrap{grid-template-columns:1fr;gap:12px}
+  .stage{order:-1;width:min(300px,78vw)}
+  .hero p{margin-left:auto;margin-right:auto}
+  .hero .ctas{justify-content:center}
+}
+
+/* ================= Favorites strip ================= */
+.favs{padding:72px 0 24px}
+.favs-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:26px}
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 22px 18px;margin:0 -22px;scrollbar-width:thin}
+.fav{scroll-snap-align:start;position:relative;border-radius:var(--r-lg);overflow:hidden;background:var(--cocoa);color:#fff;aspect-ratio:4/5;display:flex;flex-direction:column;justify-content:flex-end}
+.fav img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.fav:hover img{transform:scale(1.04)}
+.fav::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(30,10,6,.88) 0%,rgba(30,10,6,.25) 50%,transparent 70%)}
+.fav .body{position:relative;z-index:1;padding:20px}
+.fav h3{font-size:24px;line-height:1.15}
+.fav .fa{display:block;opacity:.8;font-size:15px;margin:2px 0 12px;text-align:left}
+.fav .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fav .price{font-weight:700;font-size:18px}
+
+/* ================= Menu ================= */
+.menu{padding:72px 0 88px}
+.menu-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:22px;margin-bottom:22px}
+.menu-head p{margin:10px 0 0}
+.search{position:relative;flex:0 1 330px}
+.search input{width:100%;padding:13px 16px 13px 44px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);color:var(--cocoa);font:16px var(--body)}
+.search input:focus{outline:none;border-color:var(--saffron)}
+.search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--cocoa-soft)}
+.chips{position:sticky;top:calc(70px + env(safe-area-inset-top,0px));z-index:5;display:flex;gap:8px;overflow-x:auto;padding:12px 22px;margin:0 -22px 18px;background:color-mix(in srgb,var(--parchment) 92%,transparent);backdrop-filter:blur(8px);scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 18px;font-weight:500;font-size:15px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--cocoa);border-color:var(--cocoa);color:var(--parchment)}
+.cat{margin-top:34px}
+.cat h3{font-size:30px;color:var(--barberry);padding-bottom:4px}
+.items{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:48px}
+.item{display:grid;grid-template-columns:120px 1fr;gap:20px;padding:22px 0;border-bottom:1px solid var(--line)}
+.item .thumb{width:120px;height:120px;border-radius:var(--r-md);overflow:hidden;background:var(--line)}
+.item .thumb img{width:100%;height:100%;object-fit:cover}
+.item .row{display:flex;align-items:baseline;gap:10px}
+.item h4{font-family:var(--display);font-weight:400;font-size:21px;line-height:1.2;margin:0}
+.item .dots{flex:1;min-width:14px;border-bottom:2px dotted var(--line);transform:translateY(-5px)}
+.price{font-weight:700;color:var(--barberry);white-space:nowrap}
+.item .fa-name{display:block;text-align:left;color:var(--cocoa-soft);font-size:15px}
+.item .desc{color:var(--cocoa-soft);font-size:15px;line-height:1.55;margin:6px 0 8px}
+.item details{font-size:14px;color:var(--cocoa-soft);margin-bottom:10px}
+.item summary{cursor:pointer;font-weight:600;color:var(--cocoa);width:max-content}
+.item details p{margin:6px 0 0}
+.allergen{display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;background:color-mix(in srgb,var(--ribbon) 12%,transparent);color:var(--ribbon);font-weight:600;font-size:13px}
+@media (max-width:900px){.items{grid-template-columns:1fr}}
+@media (max-width:520px){.item{grid-template-columns:92px 1fr;gap:14px}.item .thumb{width:92px;height:92px}.item h4{font-size:19px}}
+.empty{padding:36px 0;color:var(--cocoa-soft)}
+
+/* add / stepper */
+.add{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;padding:9px 18px;background:var(--barberry);color:#fff;font-weight:600;font-size:15px;cursor:pointer}
+.add:hover{background:var(--night)}
+.fav .add{background:var(--saffron);color:#2A140C}
+.step{display:inline-flex;align-items:center;border-radius:999px;background:var(--barberry);color:#fff;overflow:hidden}
+.step button{width:40px;height:40px;border:0;background:transparent;color:inherit;font-size:20px;cursor:pointer}
+.step button:hover{background:rgba(0,0,0,.18)}
+.step span{min-width:26px;text-align:center;font-weight:700}
+.fav .step{background:var(--saffron);color:#2A140C}
+
+/* ================= Story ================= */
+.story{background:var(--paper);border-block:1px solid var(--line);padding:96px 0}
+.story .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:72px;align-items:start}
+.story h2 small{display:block;font-family:var(--body);font-size:18px;font-weight:500;color:var(--cocoa-soft);letter-spacing:0;margin-top:14px}
+.timeline{list-style:none;margin:40px 0 0;padding:0;border-left:2px solid var(--line)}
+.timeline li{position:relative;padding:0 0 26px 26px}
+.timeline li::before{content:"";position:absolute;left:-8px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--parchment);border:3px solid var(--saffron)}
+.timeline li:last-child::before{background:var(--crocus);border-color:var(--crocus)}
+.timeline b{display:block;font-family:var(--display);font-weight:400;font-size:22px}
+.timeline span{color:var(--cocoa-soft);font-size:15px}
+.story-text p{margin:0 0 18px;font-size:18px;line-height:1.75;max-width:38em}
+.story-text .sign{font-family:var(--display);font-size:clamp(24px,2.6vw,32px);line-height:1.3;color:var(--barberry);margin:34px 0 8px}
+.story-text .where{color:var(--cocoa-soft)}
+@media (max-width:900px){.story{padding:72px 0}.story .wrap{grid-template-columns:1fr;gap:28px}}
+
+/* ================= Catering + contact ================= */
+.contact{padding:96px 0;background:var(--night);color:#FBEFE2}
+.contact .wrap{display:grid;grid-template-columns:.85fr 1.15fr;gap:64px;align-items:start}
+.contact h2{color:#FFF6EA}
+.contact .lede{color:#E2C7BC}
+.perks{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:12px}
+.perks li{display:flex;gap:12px;align-items:flex-start;color:#F1DCCF}
+.perks svg{flex:none;margin-top:4px;color:var(--saffron)}
+.formcard{background:var(--paper);color:var(--cocoa);border-radius:var(--r-lg);padding:30px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--parchment);border-radius:999px;padding:4px;margin-bottom:24px}
+.tabs button{border:0;background:transparent;border-radius:999px;padding:10px;font-weight:600;cursor:pointer;color:var(--cocoa-soft)}
+.tabs button[aria-selected="true"]{background:var(--barberry);color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-weight:600;font-size:14px}
+.field label em{font-style:normal;font-weight:400;color:var(--cocoa-soft)}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--parchment);color:var(--cocoa);font:16px var(--body)}
+.field textarea{min-height:120px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--saffron)}
+.only-cater[hidden]{display:none}
+.form-error{color:var(--ribbon);font-weight:600;font-size:15px;margin:4px 0 12px}
+.formcard .btn{width:100%}
+.thanks{text-align:center;padding:28px 6px}
+.thanks img{width:120px;margin:0 auto 14px;animation:inFlower .8s cubic-bezier(.2,1.35,.35,1) both}
+.thanks h3{font-size:32px;margin-bottom:8px}
+.thanks p{color:var(--cocoa-soft);margin:0 auto 22px;max-width:28em}
+@media (max-width:900px){.contact{padding:72px 0}.contact .wrap{grid-template-columns:1fr;gap:36px}.formcard{padding:22px}}
+@media (max-width:520px){.grid2{grid-template-columns:1fr;gap:0}}
+
+/* ================= Hours ================= */
+.hours{padding:88px 0}
+.hours .wrap{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.hours table{width:100%;border-collapse:collapse;font-size:17px}
+.hours td{padding:13px 4px;border-bottom:1px solid var(--line)}
+.hours td:last-child{text-align:right;font-weight:600}
+.hours tr.today td{color:var(--barberry)}
+.hours tr.today td:first-child::after{content:"Today";margin-left:10px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--barberry);color:#fff;vertical-align:2px}
+.hours tr.off td:last-child{color:var(--cocoa-soft);font-weight:500}
+@media (max-width:900px){.hours{padding:64px 0}.hours .wrap{grid-template-columns:1fr;gap:28px}}
+
+footer{background:#2A140E;color:#E7D3C6;padding:48px 0 calc(48px + env(safe-area-inset-bottom,0px));font-size:15px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center}
+footer .mark span{color:#FFF6EA}
+footer nav{display:flex;gap:20px;flex-wrap:wrap}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ================= Order drawer ================= */
+.scrim{position:fixed;inset:0;z-index:60;background:rgba(25,8,4,.5);opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;z-index:61;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--paper);color:var(--cocoa);display:flex;flex-direction:column;transform:translateX(102%);transition:transform .32s cubic-bezier(.2,.8,.2,1);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.drawer.on{transform:none}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:26px}
+.x{width:40px;height:40px;border-radius:50%;border:0;background:var(--parchment);cursor:pointer;font-size:22px;line-height:1}
+.db{flex:1;overflow-y:auto;padding:8px 22px}
+.df{padding:18px 22px;border-top:1px solid var(--line)}
+.line{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.line img{width:64px;height:64px;border-radius:12px;object-fit:cover}
+.line h4{margin:0;font-size:16px;font-weight:600;line-height:1.3}
+.line small{color:var(--cocoa-soft)}
+.line .step{background:var(--parchment);color:var(--cocoa);box-shadow:inset 0 0 0 1.5px var(--line)}
+.line .step button{width:34px;height:34px;font-size:18px}
+.total{display:flex;justify-content:space-between;font-weight:700;font-size:18px;margin-bottom:4px}
+.note{color:var(--cocoa-soft);font-size:13px;margin:0 0 14px}
+.df .btn{width:100%}
+.drawer-empty{text-align:center;padding:60px 10px;color:var(--cocoa-soft)}
+.drawer-empty img{width:110px;margin:0 auto 12px;opacity:.9}
+/* checkout handoff */
+.handoff p.intro{font-size:15px;color:var(--cocoa-soft);margin:14px 0 6px}
+.hand{display:grid;grid-template-columns:30px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.hand .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--parchment);font-weight:700;font-size:14px}
+.hand.done .n{background:var(--leaf);color:#fff}
+.hand h4{margin:0;font-size:16px;font-weight:600;line-height:1.3}
+.hand small{color:var(--cocoa-soft)}
+.hand a{border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;text-decoration:none;background:var(--barberry);color:#fff;white-space:nowrap}
+.hand.done a{background:var(--parchment);color:var(--cocoa)}
+.back{border:0;background:none;color:var(--cocoa-soft);font-weight:600;cursor:pointer;padding:8px 0;margin-top:6px}
+
+/* mobile order bar */
+.bar{position:fixed;z-index:30;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:none}
+.bar button{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;border-radius:18px;padding:16px 20px;background:var(--barberry);color:#fff;font-weight:600;font-size:16px;box-shadow:0 14px 30px -10px rgba(74,15,27,.6);cursor:pointer}
+@media (max-width:900px){.bar.show{display:block} body.has-bar footer{padding-bottom:110px}}
+
+.toast{position:fixed;z-index:70;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;background:var(--cocoa);color:var(--parchment);padding:12px 18px;border-radius:14px;font-size:15px;transition:.25s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (min-width:901px){.toast{bottom:28px}}
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="mark" href="#">
+      <img src="assets/logo.webp" alt="" width="46" height="46">
+      <span>Nomz Kitchen</span>
+    </a>
+    <nav aria-label="Main">
+      <a href="#menu">Menu</a>
+      <a href="#story">Our story</a>
+      <a href="#contact">Catering</a>
+      <a href="#hours">Hours</a>
+    </nav>
+    <button class="cart-btn" id="cartBtn" type="button" aria-label="Open your order">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      <span>Order</span><span class="count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="status" id="status"><i></i><span>Checking kitchen hours</span></div>
+        <h1>A taste of home, cooked fresh every day.</h1>
+        <p>Authentic Persian home cooking from the family behind Nomz Truck. Saffron rice, slow-simmered stews and the recipes we grew up with, made with love in Northern Virginia.</p>
+        <div class="ctas">
+          <a class="btn btn-gold" href="#menu">Order now</a>
+          <a class="btn btn-line" href="#contact">Plan catering</a>
+        </div>
+      </div>
+      <div class="stage" id="stage" aria-hidden="true" title="Tap to replay">
+        <div class="glow"></div>
+        <div class="build">
+          <img class="pc p-plate" src="assets/logo-parts/plate.webp" alt="" draggable="false" style="left:7.917%;top:14.583%;width:82.083%;height:82.083%">
+          <img class="pc p-apron" src="assets/logo-parts/apron.webp" alt="" draggable="false" style="left:0.972%;top:4.444%;width:43.333%;height:63.889%">
+          <img class="pc p-hat" src="assets/logo-parts/hat.webp" alt="" draggable="false" style="left:50.417%;top:14.861%;width:37.222%;height:23.472%">
+          <img class="pc p-nomz" src="assets/logo-parts/nomz.webp" alt="" draggable="false" style="left:37.917%;top:26.806%;width:58.056%;height:29.167%">
+          <img class="pc p-kitchen" src="assets/logo-parts/kitchen.webp" alt="" draggable="false" style="left:37.778%;top:54.167%;width:58.472%;height:23.194%">
+          <img class="pc p-banner" src="assets/logo-parts/banner.webp" alt="" draggable="false" style="left:15.139%;top:74.028%;width:73.889%;height:17.361%">
+          <img class="pc p-flower" src="assets/logo-parts/flower.webp" alt="" draggable="false" style="left:9.861%;top:52.778%;width:32.222%;height:24.444%">
+          <img class="pc p-leaves" src="assets/logo-parts/leaves.webp" alt="" draggable="false" style="left:85.0%;top:48.194%;width:14.028%;height:22.361%">
+          <img class="full" src="assets/logo.webp" alt="" draggable="false" width="720" height="720">
+          <div class="sheen"></div>
+          <span class="spark" style="--a:8deg;--d:min(135px,30vw)"></span><span class="spark" style="--a:44deg;--d:min(171px,38vw)"></span><span class="spark" style="--a:80deg;--d:min(207px,46vw)"></span><span class="spark" style="--a:116deg;--d:min(135px,30vw)"></span><span class="spark" style="--a:152deg;--d:min(171px,38vw)"></span><span class="spark" style="--a:188deg;--d:min(207px,46vw)"></span><span class="spark" style="--a:224deg;--d:min(135px,30vw)"></span><span class="spark" style="--a:260deg;--d:min(171px,38vw)"></span><span class="spark" style="--a:296deg;--d:min(207px,46vw)"></span><span class="spark" style="--a:332deg;--d:min(135px,30vw)"></span>
+          <svg class="steam" viewBox="0 0 100 100"><path d="M25 95c-10-15 10-25 0-45s10-30 0-45"/><path d="M50 95c-10-15 10-25 0-45s10-30 0-45"/><path d="M75 95c-10-15 10-25 0-45s10-30 0-45"/></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAVORITES ============ -->
+  <section class="favs" aria-labelledby="favT">
+    <div class="wrap">
+      <div class="favs-head">
+        <div>
+          <h2 id="favT">Customer favorites</h2>
+        </div>
+        <a class="btn btn-red" href="#menu">Full menu</a>
+      </div>
+      <div class="rail" id="rail"></div>
+    </div>
+  </section>
+
+  <!-- ============ MENU ============ -->
+  <section class="menu" id="menu" aria-labelledby="menuT">
+    <div class="wrap">
+      <div class="menu-head">
+        <div>
+          <h2 id="menuT">The menu</h2>
+          <p class="lede">Add everything you'd like, then check out once.</p>
+        </div>
+        <label class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Search dishes or ingredients" aria-label="Search dishes or ingredients">
+        </label>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+      <div id="list"></div>
+    </div>
+  </section>
+
+  <!-- ============ STORY ============ -->
+  <section class="story" id="story" aria-labelledby="storyT">
+    <div class="wrap">
+      <div>
+        <h2 id="storyT">From Nomz Truck to Nomz Kitchen<small>A new chapter, the same love for food.</small></h2>
+        <ol class="timeline">
+          <li><b>Nine years of Nomz Truck</b><span>Serving our community delicious food and warm hospitality.</span></li>
+          <li><b>A turning point</b><span>Two years ago, our beloved food truck broke down.</span></li>
+          <li><b>Nomz Kitchen</b><span>Back to our roots: authentic Persian home cooking.</span></li>
+        </ol>
+      </div>
+      <div class="story-text">
+        <p>For nine wonderful years, Nomz Truck served our community with delicious food, warm hospitality, and a passion for bringing people together.</p>
+        <p>Two years ago, when our beloved food truck broke down, we faced an unexpected turning point. But our love for cooking never stopped. Instead, we saw an opportunity to begin a new chapter.</p>
+        <p>Today, we're proud to introduce Nomz Kitchen, where we're bringing our passion back to its roots: authentic Persian home cooking.</p>
+        <p>Inspired by traditional family recipes, our meals are prepared with fresh ingredients, aromatic spices, and the care and attention that make homemade food so special. From comforting Persian stews to fragrant saffron rice and classic favorites, every dish is made to bring you the warmth, flavor, and feeling of a home-cooked meal.</p>
+        <p>We're grateful to everyone who supported Nomz Truck over the years, and we're excited to welcome both familiar faces and new friends to Nomz Kitchen.</p>
+        <p class="sign">A new chapter. The same passion. A taste of home.</p>
+        <p class="where">Made with love in Northern Virginia.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CATERING / CONTACT ============ -->
+  <section class="contact" id="contact" aria-labelledby="contactT">
+    <div class="wrap">
+      <div>
+        <h2 id="contactT">Catering and questions</h2>
+        <p class="lede">Planning a party, an office lunch or a family gathering? Tell us about it and we'll get back to you with options and a quote.</p>
+        <ul class="perks">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5 9-10"/></svg>Full trays of rice, stews and favorites from our menu</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5 9-10"/></svg>Birthdays, Nowruz, Yalda, office lunches and more</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5 9-10"/></svg>Cooked fresh, the same way we cook for our own family</li>
+        </ul>
+      </div>
+
+      <div class="formcard" id="formcard">
+        <form id="contactForm" novalidate>
+          <div class="tabs" role="tablist" aria-label="Request type">
+            <button type="button" role="tab" aria-selected="true" data-kind="catering">Catering request</button>
+            <button type="button" role="tab" aria-selected="false" data-kind="question">General question</button>
+          </div>
+          <input type="checkbox" name="botcheck" class="sr" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="grid2">
+            <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
+            <div class="field"><label for="f-phone">Phone <em>(optional)</em></label><input id="f-phone" name="phone" type="tel" autocomplete="tel"></div>
+          </div>
+          <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+          <div class="only-cater">
+            <div class="grid2">
+              <div class="field"><label for="f-date">Event date</label><input id="f-date" name="event_date" type="date"></div>
+              <div class="field"><label for="f-guests">Number of guests</label><input id="f-guests" name="guests" type="number" min="1" inputmode="numeric"></div>
+            </div>
+            <div class="field"><label for="f-type">Pickup or delivery</label>
+              <select id="f-type" name="service"><option>Pickup</option><option>Delivery</option><option>Not sure yet</option></select>
+            </div>
+          </div>
+          <div class="field"><label for="f-msg" id="msgLabel">Tell us about your event</label><textarea id="f-msg" name="message" required></textarea></div>
+          <p class="form-error" id="formError" hidden></p>
+          <button class="btn btn-red" type="submit" id="sendBtn">Send request</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOURS ============ -->
+  <section class="hours" id="hours" aria-labelledby="hoursT">
+    <div class="wrap">
+      <div>
+        <h2 id="hoursT">Kitchen hours</h2>
+        <p class="lede">Order online any time. We cook and hand off orders during kitchen hours.</p>
+        <a class="btn btn-red" href="#menu" style="margin-top:12px">Start an order</a>
+      </div>
+      <table id="hoursTable" aria-label="Kitchen hours"></table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="mark" href="#"><img src="assets/logo.webp" alt="" width="46" height="46"><span>Nomz Kitchen</span></a>
+    <nav aria-label="Footer">
+      <a href="#menu">Menu</a><a href="#story">Our story</a><a href="#contact">Catering</a><a href="#hours">Hours</a>
+    </nav>
+    <span>&copy; <span id="yr"></span> Nomz Kitchen. Payments are processed securely by Square.</span>
+  </div>
+</footer>
+
+<!-- Order drawer -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerT">
+  <div class="dh"><h2 id="drawerT">Your order</h2><button class="x" type="button" id="closeDrawer" aria-label="Close">&times;</button></div>
+  <div class="db" id="drawerBody"></div>
+  <div class="df" id="drawerFoot"></div>
+</aside>
+
+<div class="bar" id="bar"><button type="button" id="barBtn"><span id="barLeft">View order</span><span id="barRight"></span></button></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="menu.js"></script>
+<script>
+(() => {
+const C = window.NOMZ;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const money = n => (n || n === 0) && !isNaN(n) ? "$" + Number(n).toFixed(2) : "";
+const SQUARE_TAB = "nomz_square";
+
+/* ---------------- Menu data ---------------- */
+let MENU = clean(window.NOMZ_DEFAULT_MENU || []);
+try { const c = JSON.parse(localStorage.getItem("nomz_menu_cache") || "null"); if (c && c.length) MENU = clean(c); } catch(e){}
+
+function clean(list){
+  return list.filter(x => x && x.url && x.available !== false && String(x.available) !== "false")
+    .map(x => ({...x, price: x.price === "" ? "" : Number(x.price), featured: x.featured === true || String(x.featured) === "true"}))
+    .sort((a,b) => (Number(a.sort)||999) - (Number(b.sort)||999));
+}
+const byId = id => MENU.find(x => x.id === id);
+
+async function loadLive(){
+  if (!C.API_URL) return;
+  try{
+    const r = await fetch(C.API_URL + "?action=list", {cache:"no-store"});
+    const j = await r.json();
+    if (j.ok && Array.isArray(j.items) && j.items.length){
+      MENU = clean(j.items);
+      try{ localStorage.setItem("nomz_menu_cache", JSON.stringify(j.items)); }catch(e){}
+      buildChips(); renderAll(); renderCart();
+    }
+  }catch(e){ /* keep built-in menu */ }
+}
+
+/* ---------------- Cart ---------------- */
+let cart = {};
+try{ cart = JSON.parse(localStorage.getItem("nomz_cart") || "{}") || {}; }catch(e){}
+let opened = {};
+try{ opened = JSON.parse(localStorage.getItem("nomz_sent") || "{}") || {}; }catch(e){}
+const saveOpened = () => { try{ localStorage.setItem("nomz_sent", JSON.stringify(opened)); }catch(e){} };
+const saveCart = () => { try{ localStorage.setItem("nomz_cart", JSON.stringify(cart)); }catch(e){} };
+const qty = id => cart[id] || 0;
+
+function setQty(id, n, silent){
+  const before = qty(id);
+  n = Math.max(0, Math.min(50, n));
+  if (n) cart[id] = n; else delete cart[id];
+  delete opened[id]; saveOpened();
+  saveCart(); renderAll(); renderCart();
+  if (!silent && n > before){
+    const it = byId(id);
+    toast(`Added ${it ? it.nameEn : "dish"} to your order`);
+    const b = $("#cartBtn"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
+  }
+}
+function cartLines(){ return Object.keys(cart).map(id => ({item: byId(id), q: cart[id]})).filter(l => l.item); }
+function cartCount(){ return cartLines().reduce((s,l) => s + l.q, 0); }
+function cartTotal(){ return cartLines().reduce((s,l) => s + (Number(l.item.price)||0) * l.q, 0); }
+
+function control(it){
+  const q = qty(it.id);
+  if (!q) return `<button class="add" type="button" data-add="${esc(it.id)}" aria-label="Add ${esc(it.nameEn)}">Add</button>`;
+  return `<span class="step" role="group" aria-label="${esc(it.nameEn)} quantity">
+    <button type="button" data-dec="${esc(it.id)}" aria-label="Remove one">&minus;</button><span>${q}</span>
+    <button type="button" data-inc="${esc(it.id)}" aria-label="Add one">+</button></span>`;
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-add],[data-inc],[data-dec],[data-del]");
+  if (!a) return;
+  if (a.dataset.add) setQty(a.dataset.add, 1);
+  else if (a.dataset.inc) setQty(a.dataset.inc, qty(a.dataset.inc) + 1);
+  else if (a.dataset.dec) setQty(a.dataset.dec, qty(a.dataset.dec) - 1, true);
+  else if (a.dataset.del) setQty(a.dataset.del, 0, true);
+});
+
+/* ---------------- Rendering ---------------- */
+let activeCat = "All";
+function cats(){ return [...new Set(MENU.map(x => x.category || "Menu"))]; }
+function buildChips(){
+  const cs = cats(), box = $("#chips");
+  if (cs.length < 2){ box.hidden = true; return; }
+  box.hidden = false;
+  if (!["All", ...cs].includes(activeCat)) activeCat = "All";
+  box.innerHTML = ["All", ...cs].map(c => `<button class="chip" type="button" data-cat="${esc(c)}" aria-pressed="${c===activeCat}">${esc(c)}</button>`).join("");
+}
+$("#chips").addEventListener("click", e => {
+  const b = e.target.closest("[data-cat]"); if (!b) return;
+  activeCat = b.dataset.cat; buildChips(); renderMenu();
+});
+
+function renderFavs(){
+  let favs = MENU.filter(x => x.featured);
+  if (favs.length < 3) favs = MENU.slice(0, 4);
+  $("#rail").innerHTML = favs.map(x => `
+    <article class="fav">
+      ${x.image ? `<img loading="lazy" src="${esc(x.image)}" alt="${esc(x.nameEn)}">` : ""}
+      <div class="body">
+        <h3>${esc(x.nameEn)}</h3>
+        ${x.nameFa ? `<span class="fa">${esc(x.nameFa)}</span>` : ""}
+        <div class="row"><span class="price" style="color:#fff">${money(x.price)}</span>${control(x)}</div>
+      </div>
+    </article>`).join("");
+}
+
+function itemHTML(x){
+  return `<li class="item">
+    <div class="thumb">${x.image ? `<img loading="lazy" src="${esc(x.image)}" alt="${esc(x.nameEn)}">` : ""}</div>
+    <div>
+      <div class="row"><h4>${esc(x.nameEn)}</h4>${x.price !== "" ? `<span class="dots"></span><span class="price">${money(x.price)}</span>` : ""}</div>
+      ${x.nameFa ? `<span class="fa fa-name">${esc(x.nameFa)}</span>` : ""}
+      ${x.description ? `<p class="desc">${esc(x.description)}</p>` : ""}
+      ${x.ingredients ? `<details><summary>Ingredients</summary><p>${esc(x.ingredients)}</p>${x.allergens ? `<span class="allergen">Contains: ${esc(x.allergens)}</span>` : ""}</details>` : (x.allergens ? `<span class="allergen">Contains: ${esc(x.allergens)}</span>` : "")}
+      ${control(x)}
+    </div>
+  </li>`;
+}
+function renderMenu(){
+  const q = $("#q").value.trim().toLowerCase();
+  const shown = MENU.filter(x =>
+    (activeCat === "All" || (x.category || "Menu") === activeCat) &&
+    (!q || [x.nameEn, x.nameFa, x.description, x.ingredients].join(" ").toLowerCase().includes(q)));
+  if (!shown.length){
+    $("#list").innerHTML = `<p class="empty">Nothing on the menu matches “${esc(q)}”. Try a dish name like “Ghormeh” or an ingredient like “saffron”.</p>`;
+    return;
+  }
+  const groups = activeCat === "All" ? cats() : [activeCat];
+  $("#list").innerHTML = groups.map(c => {
+    const g = shown.filter(x => (x.category || "Menu") === c);
+    return g.length ? `<div class="cat"><h3>${esc(c)}</h3><ul class="items">${g.map(itemHTML).join("")}</ul></div>` : "";
+  }).join("");
+}
+function renderAll(){ renderFavs(); renderMenu(); }
+$("#q").addEventListener("input", renderMenu);
+
+/* ---------------- Drawer ---------------- */
+let view = "cart";
+const drawer = $("#drawer"), scrim = $("#scrim");
+let lastFocus = null;
+function openDrawer(v){ $("#toast").classList.remove("on"); view = v || "cart"; renderCart(); lastFocus = document.activeElement; drawer.classList.add("on"); scrim.classList.add("on"); document.body.style.overflow = "hidden"; $("#closeDrawer").focus(); }
+function closeDrawer(){ drawer.classList.remove("on"); scrim.classList.remove("on"); document.body.style.overflow = ""; if (lastFocus) lastFocus.focus(); }
+const resumeView = () => Object.keys(opened).some(id => cart[id]) ? "handoff" : "cart";
+$("#cartBtn").onclick = () => openDrawer(resumeView());
+$("#barBtn").onclick = () => openDrawer(resumeView());
+$("#closeDrawer").onclick = closeDrawer;
+scrim.onclick = closeDrawer;
+document.addEventListener("keydown", e => { if (e.key === "Escape" && drawer.classList.contains("on")) closeDrawer(); });
+
+function renderCart(){
+  const lines = cartLines(), n = cartCount(), total = cartTotal();
+  $("#cartCount").textContent = n;
+  $("#bar").classList.toggle("show", n > 0);
+  document.body.classList.toggle("has-bar", n > 0);
+  $("#barLeft").textContent = `View order (${n} ${n === 1 ? "item" : "items"})`;
+  $("#barRight").textContent = money(total);
+  const body = $("#drawerBody"), foot = $("#drawerFoot");
+
+  if (!lines.length){
+    $("#drawerT").textContent = "Your order";
+    body.innerHTML = `<div class="drawer-empty"><img src="assets/logo.webp" alt=""><p>Your order is empty. Add a few dishes from the menu and they'll show up here.</p></div>`;
+    foot.innerHTML = `<button class="btn btn-red" type="button" onclick="document.getElementById('closeDrawer').click();location.hash='menu'">Browse the menu</button>`;
+    return;
+  }
+
+  if (view === "cart"){
+    $("#drawerT").textContent = "Your order";
+    body.innerHTML = lines.map(({item:x, q}) => `
+      <div class="line">
+        ${x.image ? `<img src="${esc(x.image)}" alt="">` : `<span></span>`}
+        <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}</small></div>
+        <span class="step"><button type="button" data-dec="${esc(x.id)}" aria-label="Remove one ${esc(x.nameEn)}">&minus;</button><span>${q}</span><button type="button" data-inc="${esc(x.id)}" aria-label="Add one ${esc(x.nameEn)}">+</button></span>
+      </div>`).join("") + `<button class="back" type="button" onclick="document.getElementById('closeDrawer').click()">+ Add more dishes</button>`;
+    foot.innerHTML = `
+      <div class="total"><span>Subtotal</span><span>${money(total)}</span></div>
+      <p class="note">Tax and any delivery fee are added at checkout.</p>
+      <button class="btn btn-red" type="button" id="toCheckout">Checkout</button>`;
+    $("#toCheckout").onclick = () => { view = "handoff"; renderCart(); body.scrollTop = 0; };
+    return;
+  }
+
+  // checkout: one button that walks through the dishes, then pays
+  $("#drawerT").textContent = "Checkout";
+  const next = lines.find(l => !opened[l.item.id]);
+  const done = lines.length - lines.filter(l => !opened[l.item.id]).length;
+  body.innerHTML = `<div class="handoff">
+    <p class="intro">We take payment through Square. Tap the button below for each dish, add it to the cart on the Square page, then come back here.</p>
+    ${lines.map(({item:x, q}, i) => `
+      <div class="hand ${opened[x.id] ? "done" : ""}">
+        <span class="n">${opened[x.id] ? "&#10003;" : i + 1}</span>
+        <div><h4>${esc(x.nameEn)}</h4><small>${opened[x.id] ? "Sent to Square" : `Quantity ${q}`}</small></div>
+        ${opened[x.id] ? `<a href="${esc(x.url)}" target="${SQUARE_TAB}" rel="noopener" data-open="${esc(x.id)}">Redo</a>` : ""}
+      </div>`).join("")}
+    <button class="back" type="button" id="backToCart">&larr; Edit my order</button>
+  </div>`;
+  if (next){
+    const x = next.item;
+    foot.innerHTML = `
+      <div class="total"><span>${done} of ${lines.length} added</span><span>${money(total)}</span></div>
+      <p class="note">On Square, set quantity to <b>${next.q}</b> and tap <b>Add to cart</b>.</p>
+      <a class="btn btn-red" href="${esc(x.url)}" target="${SQUARE_TAB}" rel="noopener" data-open="${esc(x.id)}">Add ${esc(x.nameEn)}${lines.length > 1 ? ` (${done + 1} of ${lines.length})` : ""}</a>`;
+  } else {
+    foot.innerHTML = `
+      <div class="total"><span>All dishes added</span><span>${money(total)}</span></div>
+      <p class="note">Your Square cart is ready. Tax and any delivery fee are added there.</p>
+      <a class="btn btn-gold" href="${esc(C.SQUARE_CART_URL)}" target="${SQUARE_TAB}" rel="noopener" id="goPay">Pay on Square</a>`;
+    $("#goPay").addEventListener("click", () => {
+      // Everything is in the Square cart now, so clear the list here.
+      setTimeout(() => {
+        cart = {}; opened = {}; saveCart(); saveOpened(); view = "cart";
+        renderAll(); renderCart(); closeDrawer();
+        toast("Thank you! Finish paying in the Square tab.");
+      }, 150);
+    });
+  }
+  drawer.querySelectorAll("[data-open]").forEach(a => a.addEventListener("click", () => {
+    opened[a.dataset.open] = true; saveOpened(); setTimeout(renderCart, 120);
+  }));
+  $("#backToCart").onclick = () => { view = "cart"; renderCart(); };
+}
+
+/* ---------------- Toast ---------------- */
+let tt;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 2200); }
+
+/* ---------------- Hours + open status ---------------- */
+const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const fmtH = h => { const ap = h >= 12 ? "pm" : "am"; const hh = h % 12 || 12; return `${hh}:00 ${ap}`; };
+function nowInTz(){
+  const p = new Intl.DateTimeFormat("en-US",{timeZone:C.TIMEZONE,weekday:"short",hour:"numeric",minute:"numeric",hourCycle:"h23"}).formatToParts(new Date());
+  const g = t => p.find(x => x.type === t).value;
+  return { day: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(g("weekday")), hour: Number(g("hour")) + Number(g("minute"))/60 };
+}
+function renderHours(){
+  const {day, hour} = nowInTz();
+  const order = [1,2,3,4,5,6,0];
+  $("#hoursTable").innerHTML = order.map(d => {
+    const h = C.HOURS[d];
+    return `<tr class="${d===day?"today":""} ${h?"":"off"}"><td>${DAYS[d]}</td><td>${h ? `${fmtH(h[0])} – ${fmtH(h[1])}` : "Closed"}</td></tr>`;
+  }).join("");
+  const today = C.HOURS[day], st = $("#status");
+  if (today && hour >= today[0] && hour < today[1]){
+    st.classList.remove("closed"); st.querySelector("span").textContent = `Kitchen open now until ${fmtH(today[1])}`;
+  } else {
+    st.classList.add("closed");
+    let label = "";
+    for (let i = 0; i < 8; i++){
+      const d = (day + i) % 7, h = C.HOURS[d];
+      if (!h) continue;
+      if (i === 0 && hour < h[0]){ label = `opens today at ${fmtH(h[0])}`; break; }
+      if (i > 0){ label = `opens ${i === 1 ? "tomorrow" : DAYS[d]} at ${fmtH(h[0])}`; break; }
+    }
+    st.querySelector("span").textContent = `Kitchen closed, ${label}`;
+  }
+}
+
+/* ---------------- Contact form (Web3Forms) ---------------- */
+const form = $("#contactForm");
+let kind = "catering";
+form.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => {
+  kind = b.dataset.kind;
+  form.querySelectorAll("[data-kind]").forEach(x => x.setAttribute("aria-selected", x === b));
+  form.querySelector(".only-cater").hidden = kind !== "catering";
+  $("#msgLabel").textContent = kind === "catering" ? "Tell us about your event" : "Your message";
+  $("#sendBtn").textContent = kind === "catering" ? "Send request" : "Send message";
+});
+$("#f-date").min = new Date().toISOString().slice(0,10);
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#formError"); err.hidden = true;
+  const F = n => form.elements[n];
+  const name = F("name").value.trim(), email = F("email").value.trim(), msg = F("message").value.trim();
+  if (!name || !/^\S+@\S+\.\S+$/.test(email) || !msg){
+    err.textContent = "Please add your name, a valid email and a short message.";
+    err.hidden = false; return;
+  }
+  if (!C.WEB3FORMS_KEY || C.WEB3FORMS_KEY.startsWith("YOUR_")){
+    err.textContent = "The form isn't connected yet. Add the Web3Forms key in config.js."; err.hidden = false; return;
+  }
+  const btn = $("#sendBtn"), label = btn.textContent;
+  btn.disabled = true; btn.textContent = "Sending…";
+  const data = {
+    access_key: C.WEB3FORMS_KEY,
+    subject: kind === "catering" ? `New catering request from ${name}` : `New question from ${name}`,
+    from_name: "Nomz Kitchen website",
+    request_type: kind === "catering" ? "Catering request" : "General question",
+    name, email, phone: F("phone").value.trim(), message: msg,
+    botcheck: F("botcheck").checked
+  };
+  if (kind === "catering"){ data.event_date = F("event_date").value; data.guests = F("guests").value; data.service = F("service").value; }
+  try{
+    const r = await fetch("https://api.web3forms.com/submit", {method:"POST", headers:{"Content-Type":"application/json", Accept:"application/json"}, body: JSON.stringify(data)});
+    const j = await r.json();
+    if (!j.success) throw new Error(j.message || "Send failed");
+    $("#formcard").innerHTML = `<div class="thanks" role="status">
+      <img src="assets/logo.webp" alt="">
+      <h3>Thank you, ${esc(name.split(" ")[0])}!</h3>
+      <p>${kind === "catering" ? "We've received your catering request and will reply soon with options and a quote." : "We've received your message and will get back to you soon."} A copy of the details went to our team at Nomz Kitchen.</p>
+      <a class="btn btn-red" href="#menu">Back to the menu</a></div>`;
+  }catch(ex){
+    err.textContent = "Your message didn't send. Check your connection and try again.";
+    err.hidden = false; btn.disabled = false; btn.textContent = label;
+  }
+});
+
+/* ---------------- Header ---------------- */
+const top = $("#top");
+const onScroll = () => top.classList.toggle("solid", window.scrollY > 40);
+window.addEventListener("scroll", onScroll, {passive:true}); onScroll();
+$("#yr").textContent = new Date().getFullYear();
+
+/* ---------------- Boot ---------------- */
+buildChips(); renderAll(); renderCart(); renderHours();
+
+/* ---------------- Logo build animation ---------------- */
+const stage = $("#stage");
+const playLogo = () => { stage.classList.remove("play"); void stage.offsetWidth; stage.classList.add("play"); };
+const logoImgs = [...stage.querySelectorAll("img")];
+Promise.race([
+  Promise.all(logoImgs.map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; }))),
+  new Promise(r => setTimeout(r, 2500))
+]).then(playLogo);
+stage.addEventListener("click", playLogo);
+setInterval(renderHours, 60000);
+loadLive();
+})();
+</script>
+</body>
+</html>
