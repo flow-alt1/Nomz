@@ -303,6 +303,20 @@ footer a:hover{text-decoration:underline}
 .hand.done a{background:var(--parchment);color:var(--cocoa)}
 .back{border:0;background:none;color:var(--cocoa-soft);font-weight:600;cursor:pointer;padding:8px 0;margin-top:6px}
 
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--parchment);border-radius:999px;padding:4px;margin:18px 0 4px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:10px;font-weight:600;cursor:pointer;color:var(--cocoa-soft)}
+.seg button[aria-checked="true"]{background:var(--barberry);color:#fff}
+.onote{display:flex;flex-direction:column;gap:6px;margin:16px 0 10px;font-weight:600;font-size:14px}
+.onote em{font-style:normal;font-weight:400;color:var(--cocoa-soft)}
+.onote textarea{width:100%;padding:11px 13px;border-radius:12px;border:1.5px solid var(--line);background:var(--parchment);color:var(--cocoa);font:15px var(--body);resize:vertical}
+.onote textarea:focus{outline:none;border-color:var(--saffron)}
+#payErr a{color:inherit}
+.done-wrap{position:fixed;inset:0;z-index:80;background:rgba(25,8,4,.55);display:grid;place-items:center;padding:20px}
+.done-card{background:var(--paper);color:var(--cocoa);border-radius:22px;padding:32px 26px;max-width:420px;text-align:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+.done-card img{width:130px;margin:0 auto 10px;animation:inFlower .8s cubic-bezier(.2,1.35,.35,1) both}
+.done-card h2{font-size:30px;margin-bottom:8px}
+.done-card p{color:var(--cocoa-soft);margin:0 0 20px}
+
 /* mobile order bar */
 .bar{position:fixed;z-index:30;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:none}
 .bar button{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;border-radius:18px;padding:16px 20px;background:var(--barberry);color:#fff;font-weight:600;font-size:16px;box-shadow:0 14px 30px -10px rgba(74,15,27,.6);cursor:pointer}
@@ -505,7 +519,6 @@ const C = window.NOMZ;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 const money = n => (n || n === 0) && !isNaN(n) ? "$" + Number(n).toFixed(2) : "";
-const SQUARE_TAB = "nomz_square";
 
 /* ---------------- Menu data ---------------- */
 let MENU = clean(window.NOMZ_DEFAULT_MENU || []);
@@ -534,9 +547,6 @@ async function loadLive(){
 /* ---------------- Cart ---------------- */
 let cart = {};
 try{ cart = JSON.parse(localStorage.getItem("nomz_cart") || "{}") || {}; }catch(e){}
-let opened = {};
-try{ opened = JSON.parse(localStorage.getItem("nomz_sent") || "{}") || {}; }catch(e){}
-const saveOpened = () => { try{ localStorage.setItem("nomz_sent", JSON.stringify(opened)); }catch(e){} };
 const saveCart = () => { try{ localStorage.setItem("nomz_cart", JSON.stringify(cart)); }catch(e){} };
 const qty = id => cart[id] || 0;
 
@@ -544,7 +554,6 @@ function setQty(id, n, silent){
   const before = qty(id);
   n = Math.max(0, Math.min(50, n));
   if (n) cart[id] = n; else delete cart[id];
-  delete opened[id]; saveOpened();
   saveCart(); renderAll(); renderCart();
   if (!silent && n > before){
     const it = byId(id);
@@ -632,17 +641,18 @@ function renderAll(){ renderFavs(); renderMenu(); }
 $("#q").addEventListener("input", renderMenu);
 
 /* ---------------- Drawer ---------------- */
-let view = "cart";
 const drawer = $("#drawer"), scrim = $("#scrim");
 let lastFocus = null;
-function openDrawer(v){ $("#toast").classList.remove("on"); view = v || "cart"; renderCart(); lastFocus = document.activeElement; drawer.classList.add("on"); scrim.classList.add("on"); document.body.style.overflow = "hidden"; $("#closeDrawer").focus(); }
+function openDrawer(){ $("#toast").classList.remove("on"); renderCart(); lastFocus = document.activeElement; drawer.classList.add("on"); scrim.classList.add("on"); document.body.style.overflow = "hidden"; $("#closeDrawer").focus(); }
 function closeDrawer(){ drawer.classList.remove("on"); scrim.classList.remove("on"); document.body.style.overflow = ""; if (lastFocus) lastFocus.focus(); }
-const resumeView = () => Object.keys(opened).some(id => cart[id]) ? "handoff" : "cart";
-$("#cartBtn").onclick = () => openDrawer(resumeView());
-$("#barBtn").onclick = () => openDrawer(resumeView());
+$("#cartBtn").onclick = () => openDrawer();
+$("#barBtn").onclick = () => openDrawer();
 $("#closeDrawer").onclick = closeDrawer;
 scrim.onclick = closeDrawer;
 document.addEventListener("keydown", e => { if (e.key === "Escape" && drawer.classList.contains("on")) closeDrawer(); });
+
+const TYPES = (C.ORDER_TYPES && C.ORDER_TYPES.length) ? C.ORDER_TYPES : ["Pickup"];
+let orderType = TYPES[0], orderNote = "";
 
 function renderCart(){
   const lines = cartLines(), n = cartCount(), total = cartTotal();
@@ -654,66 +664,77 @@ function renderCart(){
   const body = $("#drawerBody"), foot = $("#drawerFoot");
 
   if (!lines.length){
-    $("#drawerT").textContent = "Your order";
     body.innerHTML = `<div class="drawer-empty"><img src="assets/logo.webp" alt=""><p>Your order is empty. Add a few dishes from the menu and they'll show up here.</p></div>`;
     foot.innerHTML = `<button class="btn btn-red" type="button" onclick="document.getElementById('closeDrawer').click();location.hash='menu'">Browse the menu</button>`;
     return;
   }
 
-  if (view === "cart"){
-    $("#drawerT").textContent = "Your order";
-    body.innerHTML = lines.map(({item:x, q}) => `
-      <div class="line">
-        ${x.image ? `<img src="${esc(x.image)}" alt="">` : `<span></span>`}
-        <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}</small></div>
-        <span class="step"><button type="button" data-dec="${esc(x.id)}" aria-label="Remove one ${esc(x.nameEn)}">&minus;</button><span>${q}</span><button type="button" data-inc="${esc(x.id)}" aria-label="Add one ${esc(x.nameEn)}">+</button></span>
-      </div>`).join("") + `<button class="back" type="button" onclick="document.getElementById('closeDrawer').click()">+ Add more dishes</button>`;
-    foot.innerHTML = `
-      <div class="total"><span>Subtotal</span><span>${money(total)}</span></div>
-      <p class="note">Tax and any delivery fee are added at checkout.</p>
-      <button class="btn btn-red" type="button" id="toCheckout">Checkout</button>`;
-    $("#toCheckout").onclick = () => { view = "handoff"; renderCart(); body.scrollTop = 0; };
-    return;
-  }
+  body.innerHTML = lines.map(({item:x, q}) => `
+    <div class="line">
+      ${x.image ? `<img src="${esc(x.image)}" alt="">` : `<span></span>`}
+      <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}</small></div>
+      <span class="step"><button type="button" data-dec="${esc(x.id)}" aria-label="Remove one ${esc(x.nameEn)}">&minus;</button><span>${q}</span><button type="button" data-inc="${esc(x.id)}" aria-label="Add one ${esc(x.nameEn)}">+</button></span>
+    </div>`).join("") + `
+    <button class="back" type="button" onclick="document.getElementById('closeDrawer').click()">+ Add more dishes</button>
+    ${TYPES.length > 1 ? `<div class="seg" role="radiogroup" aria-label="Pickup or delivery">${TYPES.map(t =>
+      `<button type="button" role="radio" aria-checked="${t === orderType}" data-type="${esc(t)}">${esc(t)}</button>`).join("")}</div>` : ""}
+    <label class="onote"><span>Note for the kitchen <em>(optional)</em></span>
+      <textarea id="orderNote" rows="2" maxlength="300" placeholder="Allergies, extra rice, pickup time…">${esc(orderNote)}</textarea></label>`;
+  foot.innerHTML = `
+    <div class="total"><span>Subtotal</span><span>${money(total)}</span></div>
+    <p class="note">${TYPES.length > 1 ? "" : `${esc(TYPES[0])} order. `}Tax is added on the secure Square payment page.</p>
+    <p class="form-error" id="payErr" hidden></p>
+    <button class="btn btn-red" type="button" id="payBtn">Checkout ${money(total)}</button>`;
 
-  // checkout: one button that walks through the dishes, then pays
-  $("#drawerT").textContent = "Checkout";
-  const next = lines.find(l => !opened[l.item.id]);
-  const done = lines.length - lines.filter(l => !opened[l.item.id]).length;
-  body.innerHTML = `<div class="handoff">
-    <p class="intro">We take payment through Square. Tap the button below for each dish, add it to the cart on the Square page, then come back here.</p>
-    ${lines.map(({item:x, q}, i) => `
-      <div class="hand ${opened[x.id] ? "done" : ""}">
-        <span class="n">${opened[x.id] ? "&#10003;" : i + 1}</span>
-        <div><h4>${esc(x.nameEn)}</h4><small>${opened[x.id] ? "Sent to Square" : `Quantity ${q}`}</small></div>
-        ${opened[x.id] ? `<a href="${esc(x.url)}" target="${SQUARE_TAB}" rel="noopener" data-open="${esc(x.id)}">Redo</a>` : ""}
-      </div>`).join("")}
-    <button class="back" type="button" id="backToCart">&larr; Edit my order</button>
-  </div>`;
-  if (next){
-    const x = next.item;
-    foot.innerHTML = `
-      <div class="total"><span>${done} of ${lines.length} added</span><span>${money(total)}</span></div>
-      <p class="note">On Square, set quantity to <b>${next.q}</b> and tap <b>Add to cart</b>.</p>
-      <a class="btn btn-red" href="${esc(x.url)}" target="${SQUARE_TAB}" rel="noopener" data-open="${esc(x.id)}">Add ${esc(x.nameEn)}${lines.length > 1 ? ` (${done + 1} of ${lines.length})` : ""}</a>`;
-  } else {
-    foot.innerHTML = `
-      <div class="total"><span>All dishes added</span><span>${money(total)}</span></div>
-      <p class="note">Your Square cart is ready. Tax and any delivery fee are added there.</p>
-      <a class="btn btn-gold" href="${esc(C.SQUARE_CART_URL)}" target="${SQUARE_TAB}" rel="noopener" id="goPay">Pay on Square</a>`;
-    $("#goPay").addEventListener("click", () => {
-      // Everything is in the Square cart now, so clear the list here.
-      setTimeout(() => {
-        cart = {}; opened = {}; saveCart(); saveOpened(); view = "cart";
-        renderAll(); renderCart(); closeDrawer();
-        toast("Thank you! Finish paying in the Square tab.");
-      }, 150);
-    });
+  body.querySelectorAll("[data-type]").forEach(b => b.onclick = () => { orderType = b.dataset.type; renderCart(); });
+  $("#orderNote").oninput = e => { orderNote = e.target.value; };
+  $("#payBtn").onclick = startCheckout;
+}
+
+async function startCheckout(){
+  const btn = $("#payBtn"), err = $("#payErr");
+  err.hidden = true;
+  if (!C.API_URL){
+    err.innerHTML = `Online checkout isn't connected yet. You can still <a href="${esc(C.STORE_URL)}">order on our Square store</a>.`;
+    err.hidden = false; return;
   }
-  drawer.querySelectorAll("[data-open]").forEach(a => a.addEventListener("click", () => {
-    opened[a.dataset.open] = true; saveOpened(); setTimeout(renderCart, 120);
-  }));
-  $("#backToCart").onclick = () => { view = "cart"; renderCart(); };
+  btn.disabled = true; btn.textContent = "Opening secure checkout…";
+  try{
+    const r = await fetch(C.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({
+        action: "checkout",
+        items: cartLines().map(l => ({id: l.item.id, qty: l.q})),
+        method: orderType, note: orderNote,
+        returnUrl: location.origin + location.pathname + "?order=done"
+      })});
+    const j = await r.json();
+    if (!j.ok || !j.url) throw new Error(j.error || "Checkout failed");
+    try{ localStorage.setItem("nomz_pending", "1"); }catch(e){}
+    location.href = j.url;
+  }catch(ex){
+    err.innerHTML = `${esc(ex.message && ex.message !== "Failed to fetch" ? ex.message : "We couldn't open checkout. Check your connection and try again.")} Or <a href="${esc(C.STORE_URL)}">order on our Square store</a>.`;
+    err.hidden = false; btn.disabled = false; btn.textContent = `Checkout ${money(cartTotal())}`;
+  }
+}
+
+/* After Square payment, Square sends the customer back with ?order=done */
+function handleReturn(){
+  const qs = new URLSearchParams(location.search);
+  if (qs.get("order") !== "done") return;
+  cart = {}; orderNote = ""; saveCart();
+  try{ localStorage.removeItem("nomz_pending"); }catch(e){}
+  history.replaceState(null, "", location.pathname + location.hash);
+  const d = document.createElement("div");
+  d.className = "done-wrap";
+  d.innerHTML = `<div class="done-card" role="dialog" aria-modal="true" aria-labelledby="doneT">
+    <img src="assets/logo.webp" alt="">
+    <h2 id="doneT">Thank you for your order!</h2>
+    <p>Your payment went through and the kitchen has your order. Square has emailed your receipt.</p>
+    <button class="btn btn-red" type="button">Back to the menu</button></div>`;
+  document.body.append(d);
+  const close = () => d.remove();
+  d.querySelector("button").onclick = close; d.addEventListener("click", e => { if (e.target === d) close(); });
+  d.querySelector("button").focus();
 }
 
 /* ---------------- Toast ---------------- */
@@ -808,6 +829,7 @@ window.addEventListener("scroll", onScroll, {passive:true}); onScroll();
 $("#yr").textContent = new Date().getFullYear();
 
 /* ---------------- Boot ---------------- */
+handleReturn();
 buildChips(); renderAll(); renderCart(); renderHours();
 
 /* ---------------- Logo build animation ---------------- */

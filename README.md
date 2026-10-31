@@ -36,8 +36,16 @@ Upload the whole folder to Netlify, Vercel, Cloudflare Pages or any static host,
 and point nomzkitchen.com at it. If nomzkitchen.com is connected to Square Online
 as a custom domain, disconnect it in Square first.
 
+## 4. Square one-click checkout
+In Apps Script: **Project Settings → Script properties**, add
+`SQUARE_TOKEN` (Production Access Token) and `SQUARE_LOCATION_ID`.
+Never put the token in any website file or on GitHub.
+Then run `testSquare()` and check the Execution log: every dish should say OK.
+Redeploy: **Deploy → Manage deployments → Edit → New version**.
+
 ## How ordering works
-Customers build their whole order on nomzkitchen.com (saved in their browser).
-At checkout, each dish opens in one shared Square tab, where they add it to the
-Square cart, then they pay on Square. A browser can't put items into another
-site's cart, so a one-click hand-off needs Square API access (see notes).
+Customers add dishes on nomzkitchen.com and tap **Checkout**. Apps Script creates
+one Square payment link with every dish and quantity, and the customer pays on
+Square's secure page. After paying, Square sends them back to the site, the basket
+clears and a thank-you message shows. Orders appear in the Square Dashboard.
+Pickup only by default; add "Delivery" to `ORDER_TYPES` in config.js to offer it.

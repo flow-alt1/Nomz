@@ -9,6 +9,10 @@
  *  3. Deploy > New deployment > Web app.
  *       Execute as: Me    Who has access: Anyone
  *     Copy the /exec URL into config.js as API_URL.
+ *  4. Square checkout: Project Settings > Script properties > add
+ *       SQUARE_TOKEN        your Square Production Access Token (keep private)
+ *       SQUARE_LOCATION_ID  your Square Location ID
+ *     Then run testSquare() and read the Execution log.
  *  After editing this code later, use Deploy > Manage deployments > Edit >
  *  New version so the same URL keeps working.
  */
@@ -62,6 +66,12 @@ function doGet(e) {
 function doPost(e) {
   let req = {};
   try { req = JSON.parse(e.postData.contents || '{}'); } catch (err) { return json_({ ok: false, error: 'Bad request' }); }
+
+  // Public: customers starting a checkout (no password needed)
+  if (req.action === 'checkout') {
+    try { return json_(Object.assign({ ok: true }, checkout_(req))); }
+    catch (err) { return json_({ ok: false, error: String(err.message || err) }); }
+  }
 
   const auth = checkAuth_(req.password);
   if (auth !== true) return json_({ ok: false, error: auth });
@@ -233,6 +243,114 @@ function decode_(s) {
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&#(\d+);/g, (m, n) => String.fromCharCode(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (m, n) => String.fromCharCode(parseInt(n, 16)));
+}
+
+/* ========================= SQUARE CHECKOUT ========================= */
+const SQUARE_API = 'https://connect.squareup.com/v2';
+
+function sqProps_() {
+  const p = PropertiesService.getScriptProperties();
+  const token = p.getProperty('SQUARE_TOKEN'), location = p.getProperty('SQUARE_LOCATION_ID');
+  if (!token || !location) throw new Error('Online checkout is not connected yet.');
+  return { token: token, location: location };
+}
+
+function sq_(method, path, body) {
+  const opts = {
+    method: method,
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + sqProps_().token },
+    muteHttpExceptions: true
+  };
+  if (body) opts.payload = JSON.stringify(body);
+  const res = UrlFetchApp.fetch(SQUARE_API + path, opts);
+  const code = res.getResponseCode();
+  let j = {};
+  try { j = JSON.parse(res.getContentText() || '{}'); } catch (e) {}
+  if (code >= 300) {
+    const e0 = j.errors && j.errors[0];
+    throw new Error(e0 ? (e0.detail || e0.code) : 'Square error ' + code);
+  }
+  return j;
+}
+
+function pickVariation_(obj) {
+  if (!obj) return null;
+  if (obj.type === 'ITEM_VARIATION') return obj.id;
+  const v = obj.item_data && obj.item_data.variations;
+  return v && v.length ? v[0].id : null;
+}
+
+// Finds the Square catalog variation for a dish: first by the ID in its
+// square.site link, then by name. Cached for 6 hours.
+function variationFor_(item) {
+  const cache = CacheService.getScriptCache(), key = 'var_' + item.id;
+  const hit = cache.get(key);
+  if (hit) return hit === 'none' ? null : hit;
+  let vid = null;
+  try { vid = pickVariation_(sq_('get', '/catalog/object/' + encodeURIComponent(item.id)).object); } catch (e) {}
+  if (!vid) {
+    try {
+      const words = String(item.nameEn).split(/\s+/).filter(w => w.length > 2).slice(0, 3);
+      const j = sq_('post', '/catalog/search', {
+        object_types: ['ITEM'], limit: 100,
+        query: { text_query: { keywords: words } }
+      });
+      const want = String(item.nameEn).trim().toLowerCase();
+      const m = (j.objects || []).find(o => o.item_data &&
+        String(o.item_data.name || '').trim().toLowerCase().indexOf(want) === 0);
+      vid = pickVariation_(m);
+    } catch (e) {}
+  }
+  cache.put(key, vid || 'none', vid ? 21600 : 600);
+  return vid;
+}
+
+function checkout_(req) {
+  const location = sqProps_().location;
+  const menu = readItems_().filter(x => x.available);
+  const lines = (Array.isArray(req.items) ? req.items : []).slice(0, 40).map(l => ({
+    item: menu.find(x => x.id === String(l.id)),
+    qty: Math.max(1, Math.min(50, parseInt(l.qty, 10) || 0))
+  })).filter(l => l.item);
+  if (!lines.length) throw new Error('Your order is empty.');
+
+  const line_items = lines.map(({ item, qty }) => {
+    const vid = variationFor_(item);
+    if (vid) return { catalog_object_id: vid, quantity: String(qty) };
+    // Not found in the Square catalog: use the name and price from the sheet
+    if (item.price === '' || isNaN(item.price)) throw new Error(item.nameEn + ' has no price set.');
+    return {
+      name: item.nameFa ? item.nameEn + ' | ' + item.nameFa : item.nameEn,
+      quantity: String(qty),
+      base_price_money: { amount: Math.round(Number(item.price) * 100), currency: 'USD' }
+    };
+  });
+
+  const method = req.method === 'Delivery' ? 'Delivery' : 'Pickup';
+  const note = String(req.note || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+  const body = {
+    idempotency_key: Utilities.getUuid(),
+    order: { location_id: location, line_items: line_items, pricing_options: { auto_apply_taxes: true } },
+    checkout_options: { ask_for_shipping_address: method === 'Delivery' },
+    payment_note: (method.toUpperCase() + ' - nomzkitchen.com' + (note ? ' - Note: ' + note : '')).slice(0, 500)
+  };
+  const ret = String(req.returnUrl || '');
+  if (/^https:\/\/\S{1,250}$/.test(ret)) body.checkout_options.redirect_url = ret;
+
+  const j = sq_('post', '/online-checkout/payment-links', body);
+  return { url: j.payment_link.url };
+}
+
+// Run this from the editor to check the Square connection.
+function testSquare() {
+  const loc = sq_('get', '/locations/' + sqProps_().location).location;
+  Logger.log('Connected to Square location: ' + loc.name + ' (' + loc.status + ')');
+  readItems_().forEach(it => {
+    CacheService.getScriptCache().remove('var_' + it.id);
+    const v = variationFor_(it);
+    Logger.log((v ? 'OK      ' : 'NO MATCH (uses sheet price, no auto tax) ') + it.nameEn + (v ? '  -> ' + v : ''));
+  });
 }
 
 /* ----------------------------- Helpers ---------------------------- */
