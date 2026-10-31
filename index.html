@@ -90,11 +90,27 @@ h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
 @media (max-width:560px){.contact-btn{width:42px;padding:0;justify-content:center}.contact-btn span{display:none}.cart-btn > span:not(.count){display:none}.mark span{display:none}}
 
 /* ================= Hero ================= */
-.hero{position:relative;background:var(--night);color:#FBEFE2;padding:calc(110px + env(safe-area-inset-top,0px)) 0 90px;overflow:hidden;isolation:isolate}
-.hero::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.09;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23F2C46B' stroke-width='1.2'%3E%3Cpath d='M36 14l6.4 15.6L58 36l-15.6 6.4L36 58l-6.4-15.6L14 36l15.6-6.4z'/%3E%3Crect x='22' y='22' width='28' height='28' transform='rotate(45 36 36)'/%3E%3Ccircle cx='0' cy='0' r='6'/%3E%3Ccircle cx='72' cy='0' r='6'/%3E%3Ccircle cx='0' cy='72' r='6'/%3E%3Ccircle cx='72' cy='72' r='6'/%3E%3C/g%3E%3C/svg%3E")}
-.hero::after{content:"";position:absolute;z-index:-1;width:900px;height:900px;right:-260px;top:-180px;border-radius:50%;background:radial-gradient(closest-side,rgba(217,162,58,.28),transparent 70%)}
-.hero .wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.hero{position:relative;background:var(--night);color:#FBEFE2;min-height:min(92vh,900px);display:flex;align-items:center;padding:calc(110px + env(safe-area-inset-top,0px)) 0 90px;overflow:hidden;isolation:isolate}
+/* hero photo slideshow (featured dishes, slow zoom) */
+.hero-bg{position:absolute;inset:0;z-index:-3;overflow:hidden;background:var(--night)}
+.hero-bg .slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.12);transition:opacity 1.8s ease;will-change:transform,opacity}
+.hero-bg .slide.on{opacity:1;animation:kb 9s ease-out forwards}
+.hero-bg .slide:nth-child(even).on{animation-name:kb2}
+@keyframes kb{from{transform:scale(1.12) translate(1.5%,1%)}to{transform:scale(1.32) translate(-2%,-1.5%)}}
+@keyframes kb2{from{transform:scale(1.3) translate(-2%,1%)}to{transform:scale(1.12) translate(1.5%,-1%)}}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;
+  background:
+    linear-gradient(90deg,rgba(40,7,13,.94) 0%,rgba(52,9,18,.86) 34%,rgba(60,11,21,.45) 62%,rgba(40,7,13,.35) 100%),
+    linear-gradient(0deg,rgba(30,6,10,.85) 0%,rgba(30,6,10,0) 32%),
+    linear-gradient(180deg,rgba(30,6,10,.6) 0%,rgba(30,6,10,0) 22%)}
+.hero::after{content:"";position:absolute;z-index:-1;width:760px;height:760px;right:-120px;top:50%;transform:translateY(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(217,162,58,.22),transparent 70%)}
+.hero h1,.hero p{text-shadow:0 2px 24px rgba(20,4,8,.55)}
+.status{backdrop-filter:blur(6px)}
+@media (prefers-reduced-motion:reduce){.hero-bg .slide.on{animation:none;transform:scale(1.12)}}
+@media (max-width:900px){
+  .hero::before{background:linear-gradient(180deg,rgba(40,7,13,.55) 0%,rgba(40,7,13,.72) 38%,rgba(40,7,13,.9) 62%,rgba(30,6,10,.96) 100%)}
+}
+.hero .wrap{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
 .status{display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 12px;border-radius:999px;background:rgba(255,255,255,.08);font-size:14px;font-weight:500;margin-bottom:26px}
 .status i{width:9px;height:9px;border-radius:50%;background:#7BC86C;box-shadow:0 0 0 4px rgba(123,200,108,.2)}
 .status.closed i{background:#E0806F;box-shadow:0 0 0 4px rgba(224,128,111,.2)}
@@ -362,6 +378,7 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
 <main>
   <!-- ============ HERO ============ -->
   <section class="hero">
+    <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
     <div class="wrap">
       <div>
         <div class="status" id="status"><i></i><span>Checking kitchen hours</span></div>
@@ -856,6 +873,23 @@ $("#yr").textContent = new Date().getFullYear();
 /* ---------------- Boot ---------------- */
 handleReturn();
 buildChips(); renderAll(); renderCart(); renderHours();
+
+/* ---------------- Hero photo slideshow ---------------- */
+(function heroSlides(){
+  const box = $("#heroBg");
+  let pics = (C.HERO_IMAGES && C.HERO_IMAGES.length) ? C.HERO_IMAGES.slice()
+    : MENU.filter(x => x.featured && x.image).map(x => x.image);
+  if (pics.length < 3) pics = pics.concat(MENU.filter(x => x.image && !pics.includes(x.image)).map(x => x.image)).slice(0, 5);
+  if (!pics.length) return;
+  box.innerHTML = pics.map(u => `<div class="slide" style="background-image:url('${String(u).replace(/'/g, "%27")}')"></div>`).join("");
+  const slides = [...box.children];
+  let i = 0;
+  const show = n => { slides.forEach((el, k) => el.classList.toggle("on", k === n)); };
+  const first = new Image(); first.onload = first.onerror = () => show(0); first.src = pics[0];
+  if (slides.length < 2 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  pics.slice(1).forEach(u => { const im = new Image(); im.src = u; });
+  setInterval(() => { if (document.hidden) return; i = (i + 1) % slides.length; show(i); }, 6500);
+})();
 
 /* ---------------- Logo build animation ---------------- */
 const stage = $("#stage");
