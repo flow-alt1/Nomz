@@ -13,7 +13,7 @@ window.NOMZ = {
 
   // Google Apps Script web app URL (ends in /exec). See README step 2.
   // Leave empty to run from menu.js only (no admin panel).
-  API_URL: "https://script.google.com/macros/s/AKfycbzrIPlJmMK8ak11Y62XaNw2slUtVQ0JnKUBKCOnVq_NJIoeynEYOOnEOAPQkmWreSzZ6A/exec",
+  API_URL: "",
 
   // Web3Forms access key for the catering / contact form.
   WEB3FORMS_KEY: "6c4ea3d7-3394-4f60-a31e-8ff778031ef5",

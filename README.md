@@ -43,6 +43,13 @@ Never put the token in any website file or on GitHub.
 Then run `testSquare()` and check the Execution log: every dish should say OK.
 Redeploy: **Deploy → Manage deployments → Edit → New version**.
 
+## 5. New dishes that aren't on the Square store
+In admin, leave the Square link empty, fill in the name, price and details, and
+upload a photo. On save, the dish is created in your Square items automatically
+(so checkout charges it correctly) and shows on the website. Photos are stored in
+a Google Drive folder called "Nomz Website Photos". Run `setup()` once more after
+updating Code.gs so Google asks for Drive permission.
+
 ## How ordering works
 Customers add dishes on nomzkitchen.com and tap **Checkout**. Apps Script creates
 one Square payment link with every dish and quantity, and the customer pays on

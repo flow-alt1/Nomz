@@ -174,7 +174,7 @@ function render(){
     <div class="row">
       <img src="${esc(x.image)}" alt="" loading="lazy">
       <div><h3>${esc(x.nameEn)} <span class="fa" style="font-weight:400;color:var(--soft)">${esc(x.nameFa)}</span></h3>
-        <small>${esc(x.category)} &nbsp;${money(x.price)}</small>
+        <small>${esc(x.category)} &nbsp;${money(x.price)}${x.url ? "" : " &nbsp;Added in admin"}</small>
         <div class="tags">${x.available ? "" : `<span class="tag off">Hidden</span>`}${x.featured ? `<span class="tag star">Favorite</span>` : ""}<span class="tag">#${esc(x.sort)}</span></div></div>
       <div class="acts">
         <button class="btn ghost" data-toggle="${esc(x.id)}">${x.available ? "Hide" : "Show"}</button>
@@ -195,6 +195,21 @@ document.addEventListener("click", async e => {
 });
 
 /* ---------------- Editor ---------------- */
+// Resize photos in the browser before upload (max 1400px, JPEG)
+function shrink(file){
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, 1400 / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", 0.86));
+    };
+    img.onerror = () => rej(new Error("That file isn't a photo the browser can read. Try a JPG or PNG."));
+    img.src = url;
+  });
+}
 function closeEditor(){ document.getElementById("ed").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
 
 function openEditor(it){
@@ -205,12 +220,12 @@ function openEditor(it){
     <div class="eh"><h2 id="edT">${isNew ? "Add a dish" : "Edit dish"}</h2><button class="x" type="button" id="cx" aria-label="Close">&times;</button></div>
     <form class="eb" id="ef" novalidate>
       <div class="box">
-        <b>1. Paste the dish link from the Square store</b>
-        <div class="fetch"><input name="url" type="url" placeholder="https://nomzkitchen.square.site/product/…" value="${esc(it.url)}" required aria-label="Square product link">
+        <b>1. Square store link <em style="font-weight:400;color:var(--soft)">(optional)</em></b>
+        <div class="fetch"><input name="url" type="url" placeholder="https://nomzkitchen.square.site/product/…" value="${esc(it.url)}" aria-label="Square product link">
           <button class="btn gold" type="button" id="grab">Get details</button></div>
-        <p class="hint" style="margin:8px 0 0">Fills in the name, description, ingredients and photo from Square. Add the price yourself.</p>
+        <p class="hint" style="margin:8px 0 0">Dish already on the Square store? Paste its link and tap Get details. New dish? Leave this empty: it's added to your Square items automatically when you save.</p>
       </div>
-      <b style="display:block;margin-bottom:10px">2. Check the details</b>
+      <b style="display:block;margin-bottom:10px">2. Dish details</b>
       <div class="g2">
         <div class="f"><label>English name</label><input name="nameEn" value="${esc(it.nameEn)}" required></div>
         <div class="f"><label>Persian name <em>(optional)</em></label><input name="nameFa" class="fa" value="${esc(it.nameFa)}"></div>
@@ -225,8 +240,11 @@ function openEditor(it){
         <div class="f"><label>Allergens <em>(optional)</em></label><input name="allergens" placeholder="Tree nuts, fish…" value="${esc(it.allergens)}"></div>
         <div class="f"><label>Menu position <em>(1 = first)</em></label><input name="sort" inputmode="numeric" value="${esc(isNew ? "" : it.sort)}"></div>
       </div>
-      <div class="f"><label>Photo URL</label><input name="image" type="url" value="${esc(it.image)}"></div>
-      <div class="preview"><img id="pv" src="${esc(it.image)}" alt=""><span class="hint" style="margin:0">Photo preview. Square photos come in automatically with Get details.</span></div>
+      <div class="f"><label>Photo</label>
+        <div class="preview" style="margin:0"><img id="pv" src="${esc(it.image)}" alt="">
+          <div><label class="btn ghost" style="cursor:pointer">Upload photo<input type="file" id="photo" accept="image/*" hidden></label>
+          <p class="hint" style="margin:8px 0 0" id="photoHint">Or paste a photo link below.</p></div></div>
+        <input name="image" type="url" placeholder="https://…" value="${esc(it.image)}" style="margin-top:10px" aria-label="Photo link"></div>
       <div class="checks">
         <label><input type="checkbox" name="available" ${it.available !== false ? "checked" : ""}> Show on website</label>
         <label><input type="checkbox" name="featured" ${it.featured ? "checked" : ""}> Customer favorite</label>
@@ -245,6 +263,19 @@ function openEditor(it){
   document.getElementById("cancel").onclick = closeEditor;
   f.elements.image.addEventListener("input", () => document.getElementById("pv").src = f.elements.image.value);
   (isNew ? f.elements.url : f.elements.nameEn).focus();
+
+  document.getElementById("photo").onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    const hint = document.getElementById("photoHint"); err.hidden = true;
+    hint.textContent = "Uploading…";
+    try {
+      const data = await shrink(file);
+      const j = await api("upload", {data});
+      f.elements.image.value = j.url; document.getElementById("pv").src = j.url;
+      hint.textContent = "Photo uploaded.";
+    } catch(ex){ hint.textContent = "Or paste a photo link below."; fail(ex.message); }
+    e.target.value = "";
+  };
 
   document.getElementById("grab").onclick = async () => {
     const b = document.getElementById("grab"); err.hidden = true;
@@ -265,7 +296,7 @@ function openEditor(it){
   document.getElementById("save").onclick = async () => {
     err.hidden = true;
     const v = n => f.elements[n].value.trim();
-    if (!v("url")) return fail("The Square product link is required.");
+    if (!v("url") && !v("price")) return fail("Add a price. It's required for dishes without a Square store link.");
     if (!v("nameEn")) return fail("Add the English name.");
     if (v("price") && isNaN(Number(v("price")))) return fail("Price must be a number, like 16.95");
     const b = document.getElementById("save"); b.disabled = true; b.textContent = "Saving…";

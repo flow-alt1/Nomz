@@ -77,11 +77,17 @@ h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
 .top nav{display:flex;gap:24px;margin-left:auto}
 .top nav a{text-decoration:none;font-weight:500;font-size:15px;opacity:.85}
 .top nav a:hover{opacity:1}
+.icon-btn{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;color:#FBEFE2;text-decoration:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3);flex:none}
+.icon-btn:hover{background:rgba(255,255,255,.1)}
+.contact-btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 16px;border-radius:999px;color:#FBEFE2;text-decoration:none;font-weight:600;font-size:15px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3);flex:none}
+.contact-btn:hover{background:rgba(255,255,255,.1)}
 .cart-btn{position:relative;display:inline-flex;align-items:center;gap:8px;border:0;background:var(--saffron);color:#2A140C;border-radius:999px;padding:10px 18px;font-weight:600;cursor:pointer}
 .cart-btn .count{min-width:22px;height:22px;border-radius:11px;background:var(--night);color:#fff;font-size:12px;display:grid;place-items:center;padding:0 6px}
 .cart-btn.bump{animation:bump .4s}
 @keyframes bump{40%{transform:scale(1.12)}}
-@media (max-width:900px){.top nav{display:none}.cart-btn{margin-left:auto}}
+@media (max-width:900px){.top nav{display:none}.icon-btn{margin-left:auto}.top .wrap{gap:10px}}
+@media (min-width:901px){.top nav{margin-right:4px}}
+@media (max-width:560px){.contact-btn{width:42px;padding:0;justify-content:center}.contact-btn span{display:none}.cart-btn > span:not(.count){display:none}.mark span{display:none}}
 
 /* ================= Hero ================= */
 .hero{position:relative;background:var(--night);color:#FBEFE2;padding:calc(110px + env(safe-area-inset-top,0px)) 0 90px;overflow:hidden;isolation:isolate}
@@ -231,6 +237,9 @@ h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
 .contact .lede{color:#E2C7BC}
 .perks{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:12px}
 .perks li{display:flex;gap:12px;align-items:flex-start;color:#F1DCCF}
+.callrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.callrow .btn-line{color:#FBEFE2}
+.ig-cta{margin-top:12px;color:#FBEFE2}
 .perks svg{flex:none;margin-top:4px;color:var(--saffron)}
 .formcard{background:var(--paper);color:var(--cocoa);border-radius:var(--r-lg);padding:30px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
 .tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--parchment);border-radius:999px;padding:4px;margin-bottom:24px}
@@ -270,6 +279,7 @@ footer .mark span{color:#FFF6EA}
 footer nav{display:flex;gap:20px;flex-wrap:wrap}
 footer a{text-decoration:none}
 footer a:hover{text-decoration:underline}
+footer .ig{display:inline-flex;align-items:center;gap:6px}
 
 /* ================= Order drawer ================= */
 .scrim{position:fixed;inset:0;z-index:60;background:rgba(25,8,4,.5);opacity:0;pointer-events:none;transition:opacity .25s}
@@ -341,6 +351,8 @@ footer a:hover{text-decoration:underline}
       <a href="#contact">Catering</a>
       <a href="#hours">Hours</a>
     </nav>
+    <a class="icon-btn" href="https://www.instagram.com/nomz.kitchen" target="_blank" rel="noopener" aria-label="Nomz Kitchen on Instagram" title="@nomz.kitchen"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg></a>
+    <a class="contact-btn" href="#contact" data-contact aria-label="Contact us"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>Contact</span></a>
     <button class="cart-btn" id="cartBtn" type="button" aria-label="Open your order">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
       <span>Order</span><span class="count" id="cartCount">0</span>
@@ -364,15 +376,15 @@ footer a:hover{text-decoration:underline}
       <div class="stage" id="stage" aria-hidden="true" title="Tap to replay">
         <div class="glow"></div>
         <div class="build">
-          <img class="pc p-plate" src="assets/logo-parts/plate.webp" alt="" draggable="false" style="left:7.917%;top:14.583%;width:82.083%;height:82.083%">
-          <img class="pc p-apron" src="assets/logo-parts/apron.webp" alt="" draggable="false" style="left:0.972%;top:4.444%;width:43.333%;height:63.889%">
-          <img class="pc p-hat" src="assets/logo-parts/hat.webp" alt="" draggable="false" style="left:50.417%;top:14.861%;width:37.222%;height:23.472%">
-          <img class="pc p-nomz" src="assets/logo-parts/nomz.webp" alt="" draggable="false" style="left:37.917%;top:26.806%;width:58.056%;height:29.167%">
-          <img class="pc p-kitchen" src="assets/logo-parts/kitchen.webp" alt="" draggable="false" style="left:37.778%;top:54.167%;width:58.472%;height:23.194%">
-          <img class="pc p-banner" src="assets/logo-parts/banner.webp" alt="" draggable="false" style="left:15.139%;top:74.028%;width:73.889%;height:17.361%">
-          <img class="pc p-flower" src="assets/logo-parts/flower.webp" alt="" draggable="false" style="left:9.861%;top:52.778%;width:32.222%;height:24.444%">
-          <img class="pc p-leaves" src="assets/logo-parts/leaves.webp" alt="" draggable="false" style="left:85.0%;top:48.194%;width:14.028%;height:22.361%">
-          <img class="full" src="assets/logo.webp" alt="" draggable="false" width="720" height="720">
+          <img class="pc p-plate" src="assets/logo-parts/plate.webp" alt="" draggable="false" style="left:10.547%;top:15.755%;width:77.083%;height:78.906%">
+          <img class="pc p-apron" src="assets/logo-parts/apron.webp" alt="" draggable="false" style="left:2.865%;top:6.12%;width:41.797%;height:61.589%">
+          <img class="pc p-hat" src="assets/logo-parts/hat.webp" alt="" draggable="false" style="left:49.87%;top:15.755%;width:36.719%;height:23.307%">
+          <img class="pc p-nomz" src="assets/logo-parts/nomz.webp" alt="" draggable="false" style="left:38.672%;top:28.255%;width:55.599%;height:27.474%">
+          <img class="pc p-kitchen" src="assets/logo-parts/kitchen.webp" alt="" draggable="false" style="left:38.542%;top:53.906%;width:56.12%;height:22.135%">
+          <img class="pc p-banner" src="assets/logo-parts/banner.webp" alt="" draggable="false" style="left:16.146%;top:72.526%;width:71.745%;height:17.578%">
+          <img class="pc p-flower" src="assets/logo-parts/flower.webp" alt="" draggable="false" style="left:11.198%;top:52.604%;width:31.38%;height:22.917%">
+          <img class="pc p-leaves" src="assets/logo-parts/leaves.webp" alt="" draggable="false" style="left:82.812%;top:47.266%;width:14.323%;height:22.917%">
+          <img class="full" src="assets/logo.webp" alt="" draggable="false" width="760" height="760">
           <div class="sheen"></div>
           <span class="spark" style="--a:8deg;--d:min(135px,30vw)"></span><span class="spark" style="--a:44deg;--d:min(171px,38vw)"></span><span class="spark" style="--a:80deg;--d:min(207px,46vw)"></span><span class="spark" style="--a:116deg;--d:min(135px,30vw)"></span><span class="spark" style="--a:152deg;--d:min(171px,38vw)"></span><span class="spark" style="--a:188deg;--d:min(207px,46vw)"></span><span class="spark" style="--a:224deg;--d:min(135px,30vw)"></span><span class="spark" style="--a:260deg;--d:min(171px,38vw)"></span><span class="spark" style="--a:296deg;--d:min(207px,46vw)"></span><span class="spark" style="--a:332deg;--d:min(135px,30vw)"></span>
           <svg class="steam" viewBox="0 0 100 100"><path d="M25 95c-10-15 10-25 0-45s10-30 0-45"/><path d="M50 95c-10-15 10-25 0-45s10-30 0-45"/><path d="M75 95c-10-15 10-25 0-45s10-30 0-45"/></svg>
@@ -446,6 +458,11 @@ footer a:hover{text-decoration:underline}
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5 9-10"/></svg>Birthdays, Nowruz, Yalda, office lunches and more</li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5 9-10"/></svg>Cooked fresh, the same way we cook for our own family</li>
         </ul>
+        <div class="callrow">
+          <a class="btn btn-gold" href="tel:+12028884120"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 7 7L16 14l5 2v3a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/></svg>Call 202-888-4120</a>
+          <a class="btn btn-line" href="sms:+12028884120"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/></svg>Text us</a>
+        </div>
+        <a class="btn btn-line ig-cta" href="https://www.instagram.com/nomz.kitchen" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>Follow @nomz.kitchen on Instagram</a>
       </div>
 
       <div class="formcard" id="formcard">
@@ -483,6 +500,7 @@ footer a:hover{text-decoration:underline}
       <div>
         <h2 id="hoursT">Kitchen hours</h2>
         <p class="lede">Order online any time. We cook and hand off orders during kitchen hours.</p>
+        <p class="lede">Questions? Call or text <a href="tel:+12028884120" style="color:var(--barberry);font-weight:700;white-space:nowrap">202-888-4120</a></p>
         <a class="btn btn-red" href="#menu" style="margin-top:12px">Start an order</a>
       </div>
       <table id="hoursTable" aria-label="Kitchen hours"></table>
@@ -494,7 +512,9 @@ footer a:hover{text-decoration:underline}
   <div class="wrap">
     <a class="mark" href="#"><img src="assets/logo.webp" alt="" width="46" height="46"><span>Nomz Kitchen</span></a>
     <nav aria-label="Footer">
-      <a href="#menu">Menu</a><a href="#story">Our story</a><a href="#contact">Catering</a><a href="#hours">Hours</a>
+      <a href="#menu">Menu</a><a href="#story">Our story</a><a href="#contact">Catering</a><a href="#contact" data-contact>Contact</a><a href="#hours">Hours</a>
+      <a href="tel:+12028884120" class="ig"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 7 7L16 14l5 2v3a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/></svg><span>Call or text 202-888-4120</span></a>
+      <a href="https://www.instagram.com/nomz.kitchen" target="_blank" rel="noopener" class="ig"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span>@nomz.kitchen</span></a>
     </nav>
     <span>&copy; <span id="yr"></span> Nomz Kitchen. Payments are processed securely by Square.</span>
   </div>
@@ -525,7 +545,7 @@ let MENU = clean(window.NOMZ_DEFAULT_MENU || []);
 try { const c = JSON.parse(localStorage.getItem("nomz_menu_cache") || "null"); if (c && c.length) MENU = clean(c); } catch(e){}
 
 function clean(list){
-  return list.filter(x => x && x.url && x.available !== false && String(x.available) !== "false")
+  return list.filter(x => x && x.id && x.nameEn && x.available !== false && String(x.available) !== "false")
     .map(x => ({...x, price: x.price === "" ? "" : Number(x.price), featured: x.featured === true || String(x.featured) === "true"}))
     .sort((a,b) => (Number(a.sort)||999) - (Number(b.sort)||999));
 }
@@ -712,7 +732,7 @@ async function startCheckout(){
     try{ localStorage.setItem("nomz_pending", "1"); }catch(e){}
     location.href = j.url;
   }catch(ex){
-    err.innerHTML = `${esc(ex.message && ex.message !== "Failed to fetch" ? ex.message : "We couldn't open checkout. Check your connection and try again.")} Or <a href="${esc(C.STORE_URL)}">order on our Square store</a>.`;
+    err.innerHTML = `${esc(ex.message && ex.message !== "Failed to fetch" ? ex.message : "We couldn't open checkout. Check your connection and try again.")} Or call or text <a href="tel:+12028884120">202-888-4120</a>.`;
     err.hidden = false; btn.disabled = false; btn.textContent = `Checkout ${money(cartTotal())}`;
   }
 }
@@ -729,7 +749,7 @@ function handleReturn(){
   d.innerHTML = `<div class="done-card" role="dialog" aria-modal="true" aria-labelledby="doneT">
     <img src="assets/logo.webp" alt="">
     <h2 id="doneT">Thank you for your order!</h2>
-    <p>Your payment went through and the kitchen has your order. Square has emailed your receipt.</p>
+    <p>Your payment went through and the kitchen has your order. Square has emailed your receipt. Questions about your order? Call or text <a href="tel:+12028884120" style="color:var(--barberry);font-weight:700;white-space:nowrap">202-888-4120</a>.</p>
     <button class="btn btn-red" type="button">Back to the menu</button></div>`;
   document.body.append(d);
   const close = () => d.remove();
@@ -783,6 +803,12 @@ form.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => {
   $("#sendBtn").textContent = kind === "catering" ? "Send request" : "Send message";
 });
 $("#f-date").min = new Date().toISOString().slice(0,10);
+document.querySelectorAll("[data-contact]").forEach(a => a.addEventListener("click", () => {
+  const t = form.querySelector('[data-kind="question"]'); if (t) t.click();
+}));
+document.querySelectorAll('a[href="#contact"]:not([data-contact])').forEach(a => a.addEventListener("click", () => {
+  const t = form.querySelector('[data-kind="catering"]'); if (t) t.click();
+}));
 
 form.addEventListener("submit", async e => {
   e.preventDefault();

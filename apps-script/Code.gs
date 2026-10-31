@@ -45,6 +45,7 @@ function setup() {
   } else {
     Logger.log('Admin password already set (see Project Settings > Script properties).');
   }
+  photoFolder_(); // asks for Google Drive permission (photo uploads)
   clearCache_();
 }
 
@@ -83,6 +84,7 @@ function doPost(e) {
       case 'save':      return json_({ ok: true, item: saveItem_(req.item || {}) });
       case 'delete':    deleteItem_(String(req.id || '')); return json_({ ok: true });
       case 'scrape':    return json_({ ok: true, item: scrape_(String(req.url || '')) });
+      case 'upload':    return json_(Object.assign({ ok: true }, upload_(req)));
       default:          return json_({ ok: false, error: 'Unknown action' });
     }
   } catch (err) {
@@ -137,45 +139,46 @@ function cleanUrl_(url) {
 }
 
 function saveItem_(it) {
-  const url = cleanUrl_(it.url);
-  const id = productId_(url);
-  if (!id) throw new Error('That link does not look like a Square product page.');
+  const rawUrl = String(it.url || '').trim();
+  const url = rawUrl ? cleanUrl_(rawUrl) : '';
+  if (url && !productId_(url)) throw new Error('That link does not look like a Square product page.');
   const nameEn = String(it.nameEn || '').trim();
   if (!nameEn) throw new Error('English name is required.');
+  const nameFa = String(it.nameFa || '').trim();
+  const description = String(it.description || '').trim();
   const price = String(it.price).trim() === '' ? '' : Number(it.price);
   if (price !== '' && (isNaN(price) || price < 0)) throw new Error('Price must be a number, like 16.95');
+  if (!url && price === '') throw new Error('Add a price. It is required for dishes without a Square store link.');
   const image = String(it.image || '').trim();
   if (image && !/^https:\/\//i.test(image)) throw new Error('Photo URL must start with https://');
 
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  lock.waitLock(20000);
   try {
     const sh = sheet_();
     const items = readItems_();
-    const existing = items.find(x => x.id === id);
     const prevId = String(it.originalId || '');
+    let id = url ? productId_(url) : prevId;
+    // Dishes without a Square store link get (or update) their own item in the Square catalog
+    if (!url) id = syncSquareItem_(id, nameEn, nameFa, description, price) || id || ('LOCAL-' + Utilities.getUuid().slice(0, 8).toUpperCase());
+    const existing = items.find(x => x.id === id);
     const target = existing || (prevId ? items.find(x => x.id === prevId) : null);
     const row = {
       id: id,
       sort: Number(it.sort) || (target ? target.sort : (items.reduce((m, x) => Math.max(m, x.sort === 999 ? 0 : x.sort), 0) + 1)),
       featured: !!it.featured,
       available: it.available !== false,
-      nameEn: nameEn,
-      nameFa: String(it.nameFa || '').trim(),
-      price: price,
+      nameEn: nameEn, nameFa: nameFa, price: price,
       category: String(it.category || '').trim() || 'Menu',
-      description: String(it.description || '').trim(),
+      description: description,
       ingredients: String(it.ingredients || '').trim(),
       allergens: String(it.allergens || '').trim(),
-      image: image,
-      url: url,
-      updated: new Date()
+      image: image, url: url, updated: new Date()
     };
     const values = COLS.map(c => row[c]);
     if (target) {
       const ids = sh.getRange(2, 1, Math.max(sh.getLastRow() - 1, 1), 1).getValues().map(r => String(r[0]));
-      const idx = ids.indexOf(target.id);
-      sh.getRange(idx + 2, 1, 1, COLS.length).setValues([values]);
+      sh.getRange(ids.indexOf(target.id) + 2, 1, 1, COLS.length).setValues([values]);
     } else {
       sh.appendRow(values);
     }
@@ -185,6 +188,56 @@ function saveItem_(it) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// Creates or updates a Square catalog item for a dish that isn't on the Square store yet.
+// Returns the Square item id, or null when Square isn't connected.
+function syncSquareItem_(id, nameEn, nameFa, description, price) {
+  try { sqProps_(); } catch (e) { return null; }
+  const name = nameFa ? nameEn + ' | ' + nameFa : nameEn;
+  const money = { amount: Math.round(Number(price) * 100), currency: 'USD' };
+  let obj = null;
+  if (id && id.indexOf('LOCAL-') !== 0) {
+    try { obj = sq_('get', '/catalog/object/' + encodeURIComponent(id)).object; } catch (e) {}
+  }
+  if (obj && obj.type === 'ITEM') {
+    obj.item_data.name = name;
+    obj.item_data.description = description;
+    delete obj.item_data.description_html;
+    delete obj.item_data.description_plaintext;
+    const v = obj.item_data.variations && obj.item_data.variations[0];
+    if (v) { v.item_variation_data.pricing_type = 'FIXED_PRICING'; v.item_variation_data.price_money = money; }
+  } else {
+    obj = { type: 'ITEM', id: '#dish', item_data: { name: name, description: description,
+      variations: [{ type: 'ITEM_VARIATION', id: '#dishvar',
+        item_variation_data: { name: 'Regular', pricing_type: 'FIXED_PRICING', price_money: money } }] } };
+  }
+  const res = sq_('post', '/catalog/object', { idempotency_key: Utilities.getUuid(), object: obj });
+  const saved = res.catalog_object;
+  const vid = pickVariation_(saved);
+  if (vid) CacheService.getScriptCache().put('var_' + saved.id, vid, 21600);
+  return saved.id;
+}
+
+/* ------------------------- Photo upload (Drive) ------------------------- */
+function photoFolder_() {
+  const p = PropertiesService.getScriptProperties();
+  const id = p.getProperty('PHOTO_FOLDER_ID');
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  const f = DriveApp.createFolder('Nomz Website Photos');
+  p.setProperty('PHOTO_FOLDER_ID', f.getId());
+  return f;
+}
+
+function upload_(req) {
+  const m = String(req.data || '').match(/^data:(image\/(jpeg|png|webp));base64,(.+)$/);
+  if (!m) throw new Error('Upload a JPG, PNG or WEBP photo.');
+  const bytes = Utilities.base64Decode(m[3]);
+  if (bytes.length > 8 * 1024 * 1024) throw new Error('That photo is too large (max 8 MB).');
+  const ext = m[2] === 'jpeg' ? 'jpg' : m[2];
+  const file = photoFolder_().createFile(Utilities.newBlob(bytes, m[1], 'dish-' + Date.now() + '.' + ext));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return { url: 'https://lh3.googleusercontent.com/d/' + file.getId() };
 }
 
 function deleteItem_(id) {
