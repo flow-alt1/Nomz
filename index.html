@@ -516,9 +516,6 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
               <div class="field"><label for="f-date">Event date</label><input id="f-date" name="event_date" type="date"></div>
               <div class="field"><label for="f-guests">Number of guests</label><input id="f-guests" name="guests" type="number" min="1" inputmode="numeric"></div>
             </div>
-            <div class="field"><label for="f-type">Pickup or delivery</label>
-              <select id="f-type" name="service"><option>Pickup</option><option>Delivery</option><option>Not sure yet</option></select>
-            </div>
           </div>
           <div class="field"><label for="f-msg" id="msgLabel">Tell us about your event</label><textarea id="f-msg" name="message" required></textarea></div>
           <p class="form-error" id="formError" hidden></p>
@@ -533,7 +530,7 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
     <div class="wrap">
       <div>
         <h2 id="hoursT">Kitchen hours</h2>
-        <p class="lede">Order online any time. We cook and hand off orders during kitchen hours.</p>
+        <p class="lede">Order online any time. We cook and deliver during kitchen hours.</p>
         <p class="lede">Questions? Call or text <a href="tel:+12028884120" style="color:var(--barberry);font-weight:700;white-space:nowrap">202-888-4120</a></p>
         <a class="btn btn-red" href="#menu" style="margin-top:12px">Start an order</a>
       </div>
@@ -706,13 +703,12 @@ $("#closeDrawer").onclick = closeDrawer;
 scrim.onclick = closeDrawer;
 document.addEventListener("keydown", e => { if (e.key === "Escape" && drawer.classList.contains("on")) closeDrawer(); });
 
-const TYPES = (C.ORDER_TYPES && C.ORDER_TYPES.length) ? C.ORDER_TYPES : ["Pickup"];
+const TYPES = (C.ORDER_TYPES && C.ORDER_TYPES.length) ? C.ORDER_TYPES : ["Delivery"];
 let orderType = TYPES[0], orderNote = "", deliveryFee = 0;
 let cust = {name:"", phone:"", line1:"", line2:"", city:"", state:"VA", zip:""};
 try{ Object.assign(cust, JSON.parse(localStorage.getItem("nomz_customer") || "{}")); }catch(e){}
 const saveCust = () => { try{ localStorage.setItem("nomz_customer", JSON.stringify(cust)); }catch(e){} };
 const isDelivery = () => orderType === "Delivery";
-const fee = () => isDelivery() ? deliveryFee : 0;
 
 function fld(key, label, opts = {}){
   return `<label class="cf ${opts.cls || ""}"><span>${label}${opts.optional ? " <em>(optional)</em>" : ""}</span>
@@ -762,18 +758,61 @@ function renderCart(){
     </div>
     <label class="onote"><span>${isDelivery() ? "Note for the kitchen or driver" : "Note for the kitchen"} <em>(optional)</em></span>
       <textarea id="orderNote" rows="2" maxlength="300" placeholder="${isDelivery() ? "Gate code, allergies, extra rice…" : "Allergies, extra rice, pickup time…"}">${esc(orderNote)}</textarea></label>`;
-  const grand = total + fee();
-  foot.innerHTML = `
-    <div class="total"><span>Subtotal</span><span>${money(total)}</span></div>
-    ${isDelivery() && deliveryFee > 0 ? `<div class="total sub"><span>Delivery fee</span><span>${money(deliveryFee)}</span></div>` : ""}
-    <p class="note">Tax is added on the secure Square payment page.</p>
-    <p class="form-error" id="payErr" hidden></p>
-    <button class="btn btn-red" type="button" id="payBtn">Checkout ${money(grand)}</button>`;
+  renderFoot();
 
   body.querySelectorAll("[data-type]").forEach(b => b.onclick = () => { orderType = b.dataset.type; renderCart(); });
-  body.querySelectorAll("[data-c]").forEach(el => el.addEventListener("input", () => { cust[el.dataset.c] = el.value; saveCust(); el.classList.remove("bad"); const e = $("#payErr"); if (e) e.hidden = true; }));
+  body.querySelectorAll("[data-c]").forEach(el => el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => { cust[el.dataset.c] = el.value; saveCust(); el.classList.remove("bad"); const e = $("#payErr"); if (e) e.hidden = true; if (["line1","city","state","zip"].includes(el.dataset.c)) maybeQuote(); }));
   $("#orderNote").oninput = e => { orderNote = e.target.value; };
+  maybeQuote();
+}
+
+/* ---- delivery fee by distance (quoted by the server from the address) ---- */
+let quote = {key:"", state:"idle", fee:null, miles:null, error:""};
+let quoteTimer = null;
+const addrKey = () => [cust.line1, cust.city, cust.state || "VA", cust.zip].map(v => String(v || "").trim().toLowerCase()).join("|");
+const addrReady = () => cust.line1.trim() && cust.city.trim() && /^\d{5}(-\d{4})?$/.test(cust.zip.trim());
+
+function currentFee(){
+  if (!isDelivery()) return 0;
+  if (quote.key === addrKey() && quote.state === "ok") return quote.fee;
+  return deliveryFee;
+}
+
+function renderFoot(){
+  const foot = $("#drawerFoot"); if (!foot || !cartLines().length) return;
+  const total = cartTotal(), q = quote.key === addrKey() ? quote : {state:"idle"};
+  let feeRow = "", blocked = false;
+  if (isDelivery()){
+    if (q.state === "loading") feeRow = deliveryFee > 0 ? `<div class="total sub"><span>Delivery fee</span><span>Calculating…</span></div>` : "";
+    else if (q.state === "ok") feeRow = q.fee > 0 ? `<div class="total sub"><span>Delivery fee${q.miles != null ? ` (${q.miles} mi)` : ""}</span><span>${money(q.fee)}</span></div>` : "";
+    else if (q.state === "error"){ blocked = true; feeRow = `<p class="form-error">${esc(q.error)}</p>`; }
+    else feeRow = deliveryFee > 0 ? `<div class="total sub"><span>Delivery fee</span><span>${addrReady() ? "Calculating…" : "Based on distance"}</span></div>` : "";
+  }
+  foot.innerHTML = `
+    <div class="total"><span>Subtotal</span><span>${money(total)}</span></div>
+    ${feeRow}
+    <p class="note">${isDelivery() && deliveryFee > 0 ? "Delivery fee depends on distance from our kitchen. " : ""}Tax is added on the secure Square payment page.</p>
+    <p class="form-error" id="payErr" hidden></p>
+    <button class="btn btn-red" type="button" id="payBtn" ${blocked ? "disabled" : ""}>Checkout ${money(total + currentFee())}</button>`;
   $("#payBtn").onclick = startCheckout;
+}
+
+function maybeQuote(){
+  clearTimeout(quoteTimer);
+  if (!isDelivery() || !C.API_URL || !addrReady()) { renderFoot(); return; }
+  const key = addrKey();
+  if (quote.key === key && quote.state !== "idle") { renderFoot(); return; }
+  quote = {key, state:"loading"}; renderFoot();
+  quoteTimer = setTimeout(async () => {
+    try{
+      const r = await fetch(C.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({action:"quote", address:{line1:cust.line1, city:cust.city, state:cust.state || "VA", zip:cust.zip}})});
+      const j = await r.json();
+      if (quote.key !== key) return;
+      quote = j.ok ? {key, state:"ok", fee:Number(j.fee) || 0, miles:j.miles} : {key, state:"error", error:j.error || "We couldn't check that address."};
+    }catch(e){ if (quote.key === key) quote = {key, state:"ok", fee:deliveryFee, miles:null}; }
+    renderFoot();
+  }, 600);
 }
 
 function checkCustomer(){
@@ -922,7 +961,7 @@ form.addEventListener("submit", async e => {
     name, email, phone: F("phone").value.trim(), message: msg,
     botcheck: F("botcheck").checked
   };
-  if (kind === "catering"){ data.event_date = F("event_date").value; data.guests = F("guests").value; data.service = F("service").value; }
+  if (kind === "catering"){ data.event_date = F("event_date").value; data.guests = F("guests").value; data.service = "Delivery"; }
   try{
     const r = await fetch("https://api.web3forms.com/submit", {method:"POST", headers:{"Content-Type":"application/json", Accept:"application/json"}, body: JSON.stringify(data)});
     const j = await r.json();
