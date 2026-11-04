@@ -990,9 +990,22 @@ buildChips(); renderAll(); renderCart(); renderHours();
 /* ---------------- Hero photo slideshow ---------------- */
 (function heroSlides(){
   const box = $("#heroBg");
+  // Hero shows these main dishes (by Square ID, or by name if the ID ever changes)
+  const HERO_DISHES = [
+    ["NS7PE7TU5FFYZAEXSGXOM7TO", "Zereshk Polo with Chicken"],
+    ["ZUTM5VYXZ2R4KVZQJCGIUUYX", "Baghali Polo with Lamb Shank"],
+    ["RKJ6HENZ7JIT3DIVQDYSXYTB", "Ghormeh Sabzi Stew"],
+    ["FFKZRT2HXUXRH5J7JIUDLGGC", "Fesenjan Stew"],
+    ["S52DNVRL5MLJ3W2POOZMQF3O", "Gheymeh Bademjan Stew"],
+    ["TMISBGCUDFQ57I5M45BJZ7QB", "Abgoosht"]
+  ];
+  const all = MENU.concat(window.NOMZ_DEFAULT_MENU || []);
   let pics = (C.HERO_IMAGES && C.HERO_IMAGES.length) ? C.HERO_IMAGES.slice()
-    : MENU.filter(x => x.featured && x.image).map(x => x.image);
-  if (pics.length < 3) pics = pics.concat(MENU.filter(x => x.image && !pics.includes(x.image)).map(x => x.image)).slice(0, 5);
+    : HERO_DISHES.map(([id, name]) => {
+        const it = all.find(x => x.id === id) || all.find(x => String(x.nameEn).toLowerCase() === name.toLowerCase());
+        return it && it.image;
+      }).filter(Boolean);
+  pics = [...new Set(pics)];
   if (!pics.length) return;
   box.innerHTML = pics.map(u => `<div class="slide" style="background-image:url('${String(u).replace(/'/g, "%27")}')"></div>`).join("");
   const slides = [...box.children];
