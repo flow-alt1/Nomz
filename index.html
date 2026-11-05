@@ -662,7 +662,8 @@ function setQty(id, n, silent){
   saveCart(); renderAll(); renderCart();
   if (!silent && n > before){
     const it = byId(id);
-    toast(`Added ${it ? it.nameEn : "dish"} to your order`);
+    const n = it ? nextCook(it) : null;
+    toast(`Added ${it ? it.nameEn : "dish"}${n && n.i > 0 ? ` · delivered ${whenLabel(n)}` : ""}`);
     const b = $("#cartBtn"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
   }
 }
@@ -672,12 +673,6 @@ function cartTotal(){ return cartLines().reduce((s,l) => s + (Number(l.item.pric
 
 function control(it){
   if (!byId(it.id)) return `<a class="avail" href="tel:+12028884120">Call to order</a>`;
-  const dd = deliveryDay(it);
-  if (dd === -1){
-    const days = dishDays(it), sp = specialFor(it);
-    if (sp && /pre-?order/i.test(sp.note || "") && days.includes(orderWindow().today)) return `<span class="avail">Pre-order the day before</span>`;
-    return `<span class="avail" title="This dish is cooked on ${days.map(d => WEEK_EN[d]).join(" and ")}">Available ${days.map(d => WEEK_EN[d]).join(" & ")}</span>`;
-  }
   const q = qty(it.id);
   if (!q) return `<button class="add" type="button" data-add="${esc(it.id)}" aria-label="Add ${esc(it.nameEn)}">Add</button>`;
   return `<span class="step" role="group" aria-label="${esc(it.nameEn)} quantity">
@@ -822,24 +817,37 @@ function dayLabel(d){
   if (d === (today + 1) % 7) return "Tomorrow";
   return WEEK_EN[d] || "";
 }
-// When will this dish be delivered? null = any day (not on the weekly schedule)
-function deliveryDay(x){
+// When will this dish be delivered? Its next cooking day: today if the kitchen
+// is still open (and no pre-order is needed), otherwise the next day it's cooked.
+// Returns {d: weekday, i: days from today} or null for dishes not on the schedule.
+function nextCook(x){
   const days = dishDays(x);
   if (!days.length) return null;
-  const {today, days: win} = orderWindow();
+  const {today} = orderWindow();
+  let hour = new Date().getHours(); try { hour = nowInTz().hour; } catch(e){}
+  const H = C.HOURS || {};
   const sp = specialFor(x), preorder = sp && /pre-?order/i.test(sp.note || "");
-  return win.find(d => days.includes(d) && !(preorder && d === today)) ?? -1;   // -1 = not orderable now
+  for (let i = 0; i <= 7; i++){
+    const d = (today + i) % 7;
+    if (!days.includes(d) || !H[d]) continue;
+    if (i === 0 && (preorder || hour >= H[d][1])) continue;
+    return {d, i};
+  }
+  return null;
 }
-// Weekly cards: when a dish isn't orderable yet, say when ordering opens (the kitchen day before)
-function weekControl(x, d){
-  if (!byId(x.id) || deliveryDay(x) !== -1) return control(x);
-  const sp = specialFor(x), pre = sp && /pre-?order/i.test(sp.note || "");
-  if (pre && d === orderWindow().today) return `<span class="avail">Sold by pre-order</span>`;
-  let p = d;
-  for (let i = 1; i <= 7; i++){ p = (d - i + 7) % 7; if ((C.HOURS || {})[p]) break; }
-  return `<span class="avail">Order from ${WEEK_EN[p].slice(0, 3)}</span>`;
+function deliveryDay(x){ const n = nextCook(x); return n ? n.d : null; }
+function cookDate(i){
+  try { return new Intl.DateTimeFormat("en-US", {timeZone: C.TIMEZONE, weekday: "short", month: "short", day: "numeric"}).format(new Date(Date.now() + i * 864e5)); }
+  catch(e){ return ""; }
 }
-function canOrder(x){ return !!byId(x.id) && deliveryDay(x) !== -1; }
+function whenLabel(n){
+  if (!n) return "";
+  if (n.i === 0) return "today";
+  if (n.i === 1) return "tomorrow";
+  return (n.i >= 7 ? "next " : "") + WEEK_EN[n.d] + " (" + cookDate(n.i) + ")";
+}
+function weekControl(x){ return control(x); }
+function canOrder(x){ return !!byId(x.id); }
 
 function renderWeekly(){
   const box = $("#week"); if (!box || !C.WEEKLY_MENU) return;
@@ -850,7 +858,7 @@ function renderWeekly(){
     const dishes = (C.WEEKLY_MENU[d] || []).map(findDish).filter(Boolean);
     const specials = (C.WEEKLY_SPECIALS || []).filter(sp => sp.day === d).map(sp => ({x: findDish(sp.dish), note: sp.note})).filter(o => o.x);
     const win = orderWindow().days;
-    const label = win.includes(d) ? (d === today ? "Today" : (d === (today + 1) % 7 ? "Tomorrow" : "Next")) : "";
+    const label = d === today ? "Today" : (d === (today + 1) % 7 ? "Tomorrow" : (today === 0 && d === 1 ? "Next" : ""));
     const dish = (x, extra) => `
       <div class="wdish${extra ? " special" : ""}">
         ${x.image ? `<div class="wimg"><img loading="lazy" src="${esc(x.image)}" alt="${esc(x.nameEn)}">${extra ? `<span class="wbadge">Special</span>` : ""}</div>` : ""}
@@ -858,10 +866,10 @@ function renderWeekly(){
           <h4>${esc(String(x.nameEn).split("|")[0].trim())}</h4>
           ${x.nameFa ? `<span class="fa">${esc(x.nameFa)}</span>` : ""}
           ${extra ? `<p class="wnote">${esc(extra)}</p>` : ""}
-          <div class="wrow"><span class="price">${money(x.price)}</span>${weekControl(x, d)}</div>
+          <div class="wrow"><span class="price">${money(x.price)}</span>${weekControl(x)}</div>
         </div>
       </div>`;
-    return `<article class="day${d === focus ? " focus" : ""}${win.includes(d) ? " open" : ""}" data-day="${d}">
+    return `<article class="day${d === focus ? " focus" : ""} open" data-day="${d}">
       <header><div><b>${WEEK_EN[d]}</b><span class="fa">${WEEK_FA[d]}</span></div>${label ? `<span class="today">${label}</span>` : ""}</header>
       ${dishes.map(x => dish(x)).join("")}
       ${specials.map(o => dish(o.x, o.note)).join("")}
@@ -923,7 +931,7 @@ function renderCart(){
   body.innerHTML = lines.map(({item:x, q}) => `
     <div class="line">
       ${x.image ? `<img src="${esc(x.image)}" alt="">` : `<span></span>`}
-      <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}${(() => { const d = deliveryDay(x); return d != null && d !== -1 && d !== orderWindow().today ? ` · <b class="dlv">Delivered ${esc(dayLabel(d).toLowerCase() === "tomorrow" ? "tomorrow" : WEEK_EN[d])}</b>` : ""; })()}</small></div>
+      <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}${(() => { const n = nextCook(x); return n && n.i > 0 ? `<br><b class="dlv">Delivered ${esc(whenLabel(n))}</b>` : ""; })()}</small></div>
       <span class="step"><button type="button" data-dec="${esc(x.id)}" aria-label="Remove one ${esc(x.nameEn)}">&minus;</button><span>${q}</span><button type="button" data-inc="${esc(x.id)}" aria-label="Add one ${esc(x.nameEn)}">+</button></span>
     </div>`).join("") + `
     <button class="back" type="button" onclick="document.getElementById('closeDrawer').click()">+ Add more dishes</button>
@@ -1006,11 +1014,17 @@ function maybeQuote(){
 }
 
 // e.g. "[Deliver Thursday: Ghormeh Sabzi Stew x2] "
+// e.g. "[Deliver Thu, Nov 5: Ghormeh Sabzi Stew x2 | Deliver Mon, Nov 9: Zereshk Polo with Chicken] "
 function deliveryNote(){
-  const {today} = orderWindow(), groups = {};
-  cartLines().forEach(l => { const d = deliveryDay(l.item); if (d != null && d !== -1 && d !== today) (groups[d] = groups[d] || []).push(l.item.nameEn + (l.q > 1 ? " x" + l.q : "")); });
-  const parts = Object.keys(groups).map(d => `Deliver ${WEEK_EN[d]}: ${groups[d].join(", ")}`);
-  return parts.length ? `[${parts.join(" | ")}] ` : "";
+  const groups = {}; let later = false;
+  cartLines().forEach(l => {
+    const n = nextCook(l.item); if (!n) return;
+    if (n.i > 0) later = true;
+    (groups[n.i] = groups[n.i] || []).push(l.item.nameEn + (l.q > 1 ? " x" + l.q : ""));
+  });
+  if (!later) return "";
+  const parts = Object.keys(groups).sort((a, b) => a - b).map(i => `Deliver ${Number(i) === 0 ? "today" : cookDate(Number(i))}: ${groups[i].join(", ")}`);
+  return `[${parts.join(" | ")}] `;
 }
 
 function checkCustomer(){
@@ -1029,11 +1043,6 @@ async function startCheckout(){
   const btn = $("#payBtn"), err = $("#payErr");
   err.hidden = true;
   $("#drawerBody").querySelectorAll(".bad").forEach(e => e.classList.remove("bad"));
-  const off = cartLines().filter(l => deliveryDay(l.item) === -1);
-  if (off.length){
-    err.textContent = `${off.map(l => l.item.nameEn).join(", ")} ${off.length > 1 ? "are" : "is"} not available to order right now. Please remove ${off.length > 1 ? "them" : "it"} from your order.`;
-    err.hidden = false; return;
-  }
   const problem = checkCustomer();
   if (problem){
     const el = $(`[data-c="${problem[0]}"]`);
