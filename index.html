@@ -473,7 +473,6 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
         <p class="lede">A different home-cooked favorite every day. Order today’s dish, or order ahead for later in the week.</p>
       </div>
       <div class="week" id="week"></div>
-      <p class="week-note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span id="weekNote"></span></p>
     </div>
   </section>
 
@@ -710,8 +709,12 @@ $("#chips").addEventListener("click", e => {
 });
 
 function renderFavs(){
+  // Only dishes marked "Customer favorite" in admin. If fewer than 3 are marked,
+  // fill up with main meals (never drinks or sides).
+  const isMeal = x => catRank(x.category || "Menu") === 1 && !DRINK_RE.test(x.nameEn) && !SIDE_RE.test(x.nameEn);
   let favs = MENU.filter(x => x.featured);
-  if (favs.length < 3) favs = MENU.slice(0, 4);
+  if (favs.length < 3) favs = favs.concat(MENU.filter(x => !x.featured && isMeal(x) && x.image)).slice(0, 4);
+  $(".favs").hidden = !favs.length;
   $("#rail").innerHTML = favs.map(x => `
     <article class="fav">
       ${x.image ? `<img loading="lazy" src="${esc(x.image)}" alt="${esc(x.nameEn)}">` : ""}
@@ -828,7 +831,6 @@ function renderWeekly(){
       setTimeout(() => { box.style.scrollSnapType = ""; }, 50);
     }, 250);
   }
-  const dn = $("#weekNote"); if (dn && C.DELIVERY_NOTE) dn.textContent = C.DELIVERY_NOTE;
 }
 function renderAll(){ for (const k in dishCache) delete dishCache[k]; renderWeekly(); renderFavs(); renderMenu(); }
 $("#q").addEventListener("input", renderMenu);
