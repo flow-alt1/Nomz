@@ -992,7 +992,7 @@ function renderFoot(){
   foot.innerHTML = `
     <div class="total"><span>Subtotal</span><span>${money(total)}</span></div>
     ${feeRow}
-    <p class="note">${isDelivery() && deliveryFee > 0 ? "Delivery fee depends on distance from our kitchen. " : ""}Tax is added on the secure Square payment page.</p>
+    <p class="note">${isDelivery() && deliveryFee > 0 ? "Delivery fee depends on distance from our kitchen. " : ""}Tax and an optional tip are added on the secure Square payment page.</p>
     <p class="form-error" id="payErr" hidden></p>
     <button class="btn btn-red" type="button" id="payBtn" ${blocked ? "disabled" : ""}>Checkout ${money(total + currentFee())}</button>`;
   $("#payBtn").onclick = startCheckout;
