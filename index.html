@@ -183,7 +183,9 @@ h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
 
 /* free delivery stamp */
 .hero .wrap{position:relative}
-.promo{position:absolute;right:1%;bottom:-2%;width:156px;z-index:3;display:block;border-radius:50%;
+.promo{position:absolute;z-index:5;width:150px;display:block;border-radius:50%;
+  top:calc(70px + env(safe-area-inset-top,0px) + 14px);
+  right:max(22px, calc((100vw - var(--wrap)) / 2 + 22px));
   filter:drop-shadow(0 14px 22px rgba(20,4,8,.5));transform:rotate(-12deg);animation:stampIn .7s cubic-bezier(.2,1.6,.4,1) 2.5s both}
 .promo:hover{transform:rotate(-6deg) scale(1.06);transition:transform .25s}
 .promo svg{display:block;width:100%;height:auto}
@@ -191,7 +193,8 @@ h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
 @keyframes promoSpin{to{transform:rotate(360deg)}}
 @keyframes stampIn{0%{opacity:0;transform:scale(2.4) rotate(-40deg)}60%{opacity:1;transform:scale(.92) rotate(-10deg)}80%{transform:scale(1.04) rotate(-13deg)}100%{opacity:1;transform:scale(1) rotate(-12deg)}}
 @media (prefers-reduced-motion:reduce){.promo,.promo-spin{animation:none}}
-@media (max-width:900px){.promo{width:104px;right:4px;top:-8px;bottom:auto}}
+@media (max-width:900px){.promo{width:92px;right:10px;top:calc(70px + env(safe-area-inset-top,0px) + 6px)}}
+@media (max-width:380px){.promo{width:80px}}
 .free{color:#2E7D32;font-weight:800;letter-spacing:.04em}
 .promo-tag{display:inline-block;margin-left:6px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:#B3242F;color:#fff;vertical-align:2px}
 
@@ -453,16 +456,6 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
   <!-- ============ HERO ============ -->
   <section class="hero">
     <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
-    <div class="wrap">
-      <div>
-        <div class="status" id="status"><i></i><span>Checking kitchen hours</span></div>
-        <h1>A taste of home, cooked fresh every day.</h1>
-        <p>Authentic Persian home cooking from the family behind Nomz Truck. Saffron rice, slow-simmered stews and the recipes we grew up with, made with love in Northern Virginia.</p>
-        <div class="ctas">
-          <a class="btn btn-gold" href="#weekly">This week’s menu</a>
-          <a class="btn btn-line" href="#contact">Plan catering</a>
-        </div>
-      </div>
       <a class="promo" href="#weekly" aria-label="Free delivery for a limited time. See this week’s menu">
         <svg viewBox="0 0 200 200" aria-hidden="true">
           <defs><path id="promoRing" d="M100,100 m-76,0 a76,76 0 1,1 152,0 a76,76 0 1,1 -152,0"/></defs>
@@ -478,6 +471,16 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
           <text x="100" y="134" text-anchor="middle" font-family="Vazirmatn, sans-serif" font-size="11.5" font-weight="800" letter-spacing="2.2" fill="#3B1A12">DELIVERY</text>
         </svg>
       </a>
+    <div class="wrap">
+      <div>
+        <div class="status" id="status"><i></i><span>Checking kitchen hours</span></div>
+        <h1>A taste of home, cooked fresh every day.</h1>
+        <p>Authentic Persian home cooking from the family behind Nomz Truck. Saffron rice, slow-simmered stews and the recipes we grew up with, made with love in Northern Virginia.</p>
+        <div class="ctas">
+          <a class="btn btn-gold" href="#weekly">This week’s menu</a>
+          <a class="btn btn-line" href="#contact">Plan catering</a>
+        </div>
+      </div>
       <div class="stage" id="stage" aria-hidden="true" title="Tap to replay">
         <div class="glow"></div>
         <div class="build">
