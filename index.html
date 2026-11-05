@@ -181,6 +181,20 @@ h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
   .hero .ctas{justify-content:center}
 }
 
+/* free delivery stamp */
+.hero .wrap{position:relative}
+.promo{position:absolute;right:1%;bottom:-2%;width:156px;z-index:3;display:block;border-radius:50%;
+  filter:drop-shadow(0 14px 22px rgba(20,4,8,.5));transform:rotate(-12deg);animation:stampIn .7s cubic-bezier(.2,1.6,.4,1) 2.5s both}
+.promo:hover{transform:rotate(-6deg) scale(1.06);transition:transform .25s}
+.promo svg{display:block;width:100%;height:auto}
+.promo-spin{transform-origin:100px 100px;animation:promoSpin 22s linear infinite}
+@keyframes promoSpin{to{transform:rotate(360deg)}}
+@keyframes stampIn{0%{opacity:0;transform:scale(2.4) rotate(-40deg)}60%{opacity:1;transform:scale(.92) rotate(-10deg)}80%{transform:scale(1.04) rotate(-13deg)}100%{opacity:1;transform:scale(1) rotate(-12deg)}}
+@media (prefers-reduced-motion:reduce){.promo,.promo-spin{animation:none}}
+@media (max-width:900px){.promo{width:104px;right:4px;top:-8px;bottom:auto}}
+.free{color:#2E7D32;font-weight:800;letter-spacing:.04em}
+.promo-tag{display:inline-block;margin-left:6px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:#B3242F;color:#fff;vertical-align:2px}
+
 /* ================= Weekly menu ================= */
 .weekly{padding:84px 0 40px;background:linear-gradient(180deg,var(--paper),var(--parchment))}
 .eyebrow{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--barberry);margin-bottom:10px}
@@ -449,6 +463,21 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
           <a class="btn btn-line" href="#contact">Plan catering</a>
         </div>
       </div>
+      <a class="promo" href="#weekly" aria-label="Free delivery for a limited time. See this week’s menu">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <defs><path id="promoRing" d="M100,100 m-76,0 a76,76 0 1,1 152,0 a76,76 0 1,1 -152,0"/></defs>
+          <circle cx="100" cy="100" r="98" fill="#B3242F"/>
+          <circle cx="100" cy="100" r="92" fill="none" stroke="#F7D58A" stroke-width="1.6" stroke-dasharray="1.5 4.5"/>
+          <g class="promo-spin"><text font-family="Vazirmatn, sans-serif" font-size="14" font-weight="800" fill="#FFF6EA" letter-spacing="1"><textPath href="#promoRing" textLength="470" lengthAdjust="spacing">FREE DELIVERY ✦ LIMITED TIME ✦ ORDER TODAY ✦</textPath></text></g>
+          <circle cx="100" cy="100" r="61" fill="#E2AC45"/>
+          <circle cx="100" cy="100" r="55" fill="none" stroke="#3B1A12" stroke-width="1.6" stroke-dasharray="5 3"/>
+          <g fill="none" stroke="#3B1A12" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" transform="translate(81 58)">
+            <path d="M2 18V6h18v12M20 10h8l6 6v2h-14"/><circle cx="9" cy="20" r="3.5" fill="#E2AC45"/><circle cx="28" cy="20" r="3.5" fill="#E2AC45"/>
+          </g>
+          <text x="100" y="116" text-anchor="middle" font-family="'Young Serif', Georgia, serif" font-size="36" fill="#3B1A12">FREE</text>
+          <text x="100" y="134" text-anchor="middle" font-family="Vazirmatn, sans-serif" font-size="11.5" font-weight="800" letter-spacing="2.2" fill="#3B1A12">DELIVERY</text>
+        </svg>
+      </a>
       <div class="stage" id="stage" aria-hidden="true" title="Tap to replay">
         <div class="glow"></div>
         <div class="build">
@@ -993,6 +1022,7 @@ function renderFoot(){
     else if (q.state === "ok") feeRow = q.fee > 0 ? `<div class="total sub"><span>Delivery fee${q.miles != null ? ` (${q.miles} mi)` : ""}</span><span>${money(q.fee)}</span></div>` : "";
     else if (q.state === "error"){ blocked = true; feeRow = `<p class="form-error">${esc(q.error)}</p>`; }
     else feeRow = deliveryFee > 0 ? `<div class="total sub"><span>Delivery fee</span><span>${addrReady() ? "Calculating…" : "Based on distance"}</span></div>` : "";
+    if (!blocked && !feeRow && currentFee() === 0) feeRow = `<div class="total sub"><span>Delivery<span class="promo-tag">Limited time</span></span><span class="free">FREE</span></div>`;
   }
   foot.innerHTML = `
     <div class="total"><span>Subtotal</span><span>${money(total)}</span></div>
