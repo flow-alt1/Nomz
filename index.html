@@ -754,7 +754,32 @@ function renderMenu(){
 /* ---------------- Weekly menu ---------------- */
 const WEEK_FA = {1:"دوشنبه",2:"سه‌شنبه",3:"چهارشنبه",4:"پنجشنبه",5:"جمعه",6:"شنبه"};
 const WEEK_EN = {1:"Monday",2:"Tuesday",3:"Wednesday",4:"Thursday",5:"Friday",6:"Saturday"};
-const findDish = ref => MENU.find(x => x.id === ref) || MENU.find(x => String(x.nameEn).trim().toLowerCase() === String(ref).trim().toLowerCase());
+// Finds a dish for the weekly menu: by Square ID, then by name (tolerant of
+// capitalisation, punctuation, "|" Persian suffixes and small wording changes).
+const normName = v => String(v || "").split("|")[0].toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const dishCache = {};
+function findDish(ref){
+  if (dishCache[ref] !== undefined) return dishCache[ref];
+  const n = normName(ref), DEF = window.NOMZ_DEFAULT_MENU || [];
+  const def = DEF.find(x => x.id === ref) || DEF.find(x => normName(x.nameEn) === n);
+  let hit = MENU.find(x => x.id === ref)
+    || (def && MENU.find(x => x.id === def.id))
+    || MENU.find(x => normName(x.nameEn) === n)
+    || MENU.find(x => normName(x.nameEn).startsWith(n) || n.startsWith(normName(x.nameEn)));
+  if (!hit){
+    const words = n.split(" ").filter(w => w.length > 2);
+    let best = null, bestScore = 0;
+    MENU.forEach(x => {
+      const xs = " " + normName(x.nameEn) + " ";
+      const score = words.filter(w => xs.includes(" " + w + " ")).length / (words.length || 1);
+      if (score > bestScore){ best = x; bestScore = score; }
+    });
+    if (bestScore >= .75) hit = best;
+  }
+  if (!hit && def) hit = clean([{...def, available: true}])[0]; // never leave a day empty
+  if (!hit) console.warn("Weekly menu: no dish found for", ref);
+  return (dishCache[ref] = hit || null);
+}
 function dishDays(x){
   const days = [];
   Object.entries(C.WEEKLY_MENU || {}).forEach(([d, refs]) => { if (refs.some(r => findDish(r) === x)) days.push(Number(d)); });
@@ -780,7 +805,7 @@ function renderWeekly(){
       <div class="wdish${extra ? " special" : ""}">
         ${x.image ? `<div class="wimg"><img loading="lazy" src="${esc(x.image)}" alt="${esc(x.nameEn)}">${extra ? `<span class="wbadge">Special</span>` : ""}</div>` : ""}
         <div class="wbody">
-          <h4>${esc(x.nameEn)}</h4>
+          <h4>${esc(String(x.nameEn).split("|")[0].trim())}</h4>
           ${x.nameFa ? `<span class="fa">${esc(x.nameFa)}</span>` : ""}
           ${extra ? `<p class="wnote">${esc(extra)}</p>` : ""}
           <div class="wrow"><span class="price">${money(x.price)}</span>${control(x)}</div>
@@ -790,7 +815,7 @@ function renderWeekly(){
       <header><div><b>${WEEK_EN[d]}</b><span class="fa">${WEEK_FA[d]}</span></div>${label ? `<span class="today">${label}</span>` : ""}</header>
       ${dishes.map(x => dish(x)).join("")}
       ${specials.map(o => dish(o.x, o.note)).join("")}
-      ${!dishes.length && !specials.length ? `<p class="wnote" style="padding:16px">Menu coming soon</p>` : ""}
+      ${!dishes.length && !specials.length ? `<div class="wbody"><h4>${(C.WEEKLY_MENU[d] || []).map(esc).join("<br>")}</h4><p class="wnote">Call or text 202-888-4120 to order</p></div>` : ""}
     </article>`;
   }).join("");
   if (!renderWeekly.scrolled){
@@ -805,7 +830,7 @@ function renderWeekly(){
   }
   const dn = $("#weekNote"); if (dn && C.DELIVERY_NOTE) dn.textContent = C.DELIVERY_NOTE;
 }
-function renderAll(){ renderWeekly(); renderFavs(); renderMenu(); }
+function renderAll(){ for (const k in dishCache) delete dishCache[k]; renderWeekly(); renderFavs(); renderMenu(); }
 $("#q").addEventListener("input", renderMenu);
 
 /* ---------------- Drawer ---------------- */
