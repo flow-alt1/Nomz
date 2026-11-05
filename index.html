@@ -643,6 +643,11 @@ async function loadLive(){
     const r = await fetch(C.API_URL + "?action=list", {cache:"no-store"});
     const j = await r.json();
     if (j.ok && j.deliveryFee !== undefined){ deliveryFee = Number(j.deliveryFee) || 0; renderCart(); }
+    // Square prices for built-in dishes too (weekly-menu dishes missing from admin)
+    if (j.ok && j.prices){
+      (window.NOMZ_DEFAULT_MENU || []).forEach(x => { if (j.prices[x.id] != null) x.price = j.prices[x.id]; });
+      DEF_CLEAN = null;
+    }
     if (j.ok && Array.isArray(j.items) && j.items.length){
       MENU = clean(j.items);
       try{ localStorage.setItem("nomz_menu_cache", JSON.stringify(j.items)); }catch(e){}
