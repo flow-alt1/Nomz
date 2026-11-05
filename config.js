@@ -23,6 +23,22 @@ window.NOMZ = {
   // (Delivery asks for an address on the Square payment page).
   ORDER_TYPES: ["Delivery"],
 
+  // Weekly menu: which dishes are cooked on which day (1 = Monday … 6 = Saturday).
+  // Use the dish's exact English name (or its Square ID from its link).
+  WEEKLY_MENU: {
+    1: ["Zereshk Polo with Chicken"],
+    2: ["Gheymeh Stew with Potatoes", "Gheymeh Bademjan Stew"],
+    3: ["Fesenjan Stew"],
+    4: ["Ghormeh Sabzi Stew"],
+    5: ["Baghali Polo with Chicken", "Baghali Polo with Lamb Shank"],
+    6: ["Loobia Polo"]
+  },
+  // Specials shown on a day with a note (pre-order etc.)
+  WEEKLY_SPECIALS: [
+    { day: 6, dish: "Abgoosht", note: "Saturday special. Pre-order required." }
+  ],
+  DELIVERY_NOTE: "Free delivery within 6 miles of Pleasant Valley, Chantilly. Delivery outside this area is subject to a delivery charge.",
+
   // Kitchen hours (24h clock), used for the "Open now" badge.
   // 0 = Sunday … 6 = Saturday. null = closed.
   TIMEZONE: "America/New_York",

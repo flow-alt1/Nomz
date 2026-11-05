@@ -181,6 +181,42 @@ h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
   .hero .ctas{justify-content:center}
 }
 
+/* ================= Weekly menu ================= */
+.weekly{padding:84px 0 40px;background:linear-gradient(180deg,var(--paper),var(--parchment))}
+.eyebrow{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--barberry);margin-bottom:10px}
+.week-head .lede{margin:12px 0 0}
+.week{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(250px,1fr);gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:22px;padding:26px 22px 20px;margin:0 -22px;scrollbar-width:thin;align-items:stretch}
+@media (min-width:1180px){.week{grid-auto-columns:1fr;overflow:visible}}
+.day{scroll-snap-align:start;display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:20px;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.day:hover{transform:translateY(-3px);box-shadow:0 18px 36px -24px rgba(74,15,27,.45)}
+.day header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 8px;padding:12px 14px;background:var(--barberry);color:#FFF6EA}
+.day header b{display:block;font-family:var(--display);font-weight:400;font-size:19px;letter-spacing:.06em;text-transform:uppercase;line-height:1.1}
+.day header .fa{font-size:13px;opacity:.8}
+.day .today{flex:none;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:var(--saffron);color:#2A140C;padding:4px 10px;border-radius:999px}
+.day.focus{border-color:var(--saffron);box-shadow:0 0 0 2px var(--saffron),0 20px 40px -24px rgba(74,15,27,.5)}
+.day.focus header{background:linear-gradient(90deg,var(--night),var(--barberry))}
+.wdish{display:flex;flex-direction:column;border-bottom:1px solid var(--line)}
+.wdish:last-of-type{border-bottom:0}
+.wdish + .wdish .wimg{aspect-ratio:16/9}
+.wimg{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--line)}
+.wimg img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.day:hover .wimg img{transform:scale(1.05)}
+.wbadge{position:absolute;left:10px;top:10px;background:var(--crocus);color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.wbody{padding:12px 14px 14px;display:flex;flex-direction:column;gap:2px;flex:1}
+.wbody h4{margin:0;font-family:var(--display);font-weight:400;font-size:18px;line-height:1.2}
+.wbody .fa{color:var(--cocoa-soft);font-size:14px;text-align:left}
+.wnote{margin:4px 0 0;font-size:13px;font-weight:600;color:var(--crocus)}
+.wdish.special{background:color-mix(in srgb,var(--crocus) 6%,var(--paper))}
+.wrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:10px}
+.wrow .add{padding:8px 16px}
+.wrow .step button{width:36px;height:36px}
+.week-note{display:flex;align-items:flex-start;gap:8px;color:var(--cocoa-soft);font-size:15px;margin:6px 0 0}
+.week-note svg{flex:none;margin-top:3px;color:var(--barberry)}
+.daychips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.daychip{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--saffron) 22%,transparent);color:var(--cocoa)}
+.daychip.pre{background:color-mix(in srgb,var(--crocus) 15%,transparent);color:var(--crocus)}
+@media (max-width:900px){.weekly{padding:64px 0 28px}.week{grid-auto-columns:78%}}
+
 /* ================= Favorites strip ================= */
 .favs{padding:72px 0 24px}
 .favs-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:26px}
@@ -378,6 +414,7 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
       <span>Nomz Kitchen</span>
     </a>
     <nav aria-label="Main">
+      <a href="#weekly">Weekly menu</a>
       <a href="#story">Our story</a>
       <a href="#contact">Catering</a>
       <a href="#hours">Hours</a>
@@ -403,7 +440,7 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
         <h1>A taste of home, cooked fresh every day.</h1>
         <p>Authentic Persian home cooking from the family behind Nomz Truck. Saffron rice, slow-simmered stews and the recipes we grew up with, made with love in Northern Virginia.</p>
         <div class="ctas">
-          <a class="btn btn-gold" href="#menu">Order now</a>
+          <a class="btn btn-gold" href="#weekly">This week’s menu</a>
           <a class="btn btn-line" href="#contact">Plan catering</a>
         </div>
       </div>
@@ -428,6 +465,18 @@ footer .ig{display:inline-flex;align-items:center;gap:6px}
   </section>
 
   <!-- ============ FAVORITES ============ -->
+  <section class="weekly" id="weekly" aria-labelledby="weekT">
+    <div class="wrap">
+      <div class="week-head">
+        <span class="eyebrow">Delivery only · Monday to Saturday</span>
+        <h2 id="weekT">This week’s menu</h2>
+        <p class="lede">A different home-cooked favorite every day. Order today’s dish, or order ahead for later in the week.</p>
+      </div>
+      <div class="week" id="week"></div>
+      <p class="week-note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span id="weekNote"></span></p>
+    </div>
+  </section>
+
   <section class="favs" aria-labelledby="favT">
     <div class="wrap">
       <div class="favs-head">
@@ -635,7 +684,19 @@ document.addEventListener("click", e => {
 
 /* ---------------- Rendering ---------------- */
 let activeCat = "All";
-function cats(){ return [...new Set(MENU.map(x => x.category || "Menu"))]; }
+const DRINK_RE = /drink|soda|beverage|coca|coke|sprite|fanta|water|juice|\btea\b|doogh/i;
+const SIDE_RE = /side|salad|yogurt|yoghurt|torshi|pickle|tahdig|appetizer|starter|extra/i;
+function catRank(c){
+  const items = MENU.filter(x => (x.category || "Menu") === c);
+  const share = re => items.length ? items.filter(x => re.test(x.nameEn)).length / items.length : 0;
+  if (DRINK_RE.test(c) || share(DRINK_RE) >= .5) return 3;
+  if (SIDE_RE.test(c) || share(SIDE_RE) >= .5) return 2;
+  return 1;
+}
+function cats(){
+  const list = [...new Set(MENU.map(x => x.category || "Menu"))];
+  return list.map((c, i) => [c, catRank(c), i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
+}
 function buildChips(){
   const cs = cats(), box = $("#chips");
   if (cs.length < 2){ box.hidden = true; return; }
@@ -668,6 +729,7 @@ function itemHTML(x){
     <div>
       <div class="row"><h4>${esc(x.nameEn)}</h4>${x.price !== "" ? `<span class="dots"></span><span class="price">${money(x.price)}</span>` : ""}</div>
       ${x.nameFa ? `<span class="fa fa-name">${esc(x.nameFa)}</span>` : ""}
+      ${dayChips(x)}
       ${x.description ? `<p class="desc">${esc(x.description)}</p>` : ""}
       ${x.ingredients ? `<details><summary>Ingredients</summary><p>${esc(x.ingredients)}</p>${x.allergens ? `<span class="allergen">Contains: ${esc(x.allergens)}</span>` : ""}</details>` : (x.allergens ? `<span class="allergen">Contains: ${esc(x.allergens)}</span>` : "")}
       ${control(x)}
@@ -689,7 +751,61 @@ function renderMenu(){
     return g.length ? `<div class="cat"><h3>${esc(c)}</h3><ul class="items">${g.map(itemHTML).join("")}</ul></div>` : "";
   }).join("");
 }
-function renderAll(){ renderFavs(); renderMenu(); }
+/* ---------------- Weekly menu ---------------- */
+const WEEK_FA = {1:"دوشنبه",2:"سه‌شنبه",3:"چهارشنبه",4:"پنجشنبه",5:"جمعه",6:"شنبه"};
+const WEEK_EN = {1:"Monday",2:"Tuesday",3:"Wednesday",4:"Thursday",5:"Friday",6:"Saturday"};
+const findDish = ref => MENU.find(x => x.id === ref) || MENU.find(x => String(x.nameEn).trim().toLowerCase() === String(ref).trim().toLowerCase());
+function dishDays(x){
+  const days = [];
+  Object.entries(C.WEEKLY_MENU || {}).forEach(([d, refs]) => { if (refs.some(r => findDish(r) === x)) days.push(Number(d)); });
+  (C.WEEKLY_SPECIALS || []).forEach(sp => { if (findDish(sp.dish) === x && !days.includes(sp.day)) days.push(sp.day); });
+  return days.sort();
+}
+const specialFor = x => (C.WEEKLY_SPECIALS || []).find(sp => findDish(sp.dish) === x);
+function dayChips(x){
+  const d = dishDays(x), sp = specialFor(x);
+  if (!d.length) return "";
+  return `<div class="daychips">${d.map(n => `<span class="daychip">${WEEK_EN[n]}s</span>`).join("")}${sp ? `<span class="daychip pre">Pre-order</span>` : ""}</div>`;
+}
+function renderWeekly(){
+  const box = $("#week"); if (!box || !C.WEEKLY_MENU) return;
+  let today = 1;
+  try { today = nowInTz().day; } catch(e){ today = new Date().getDay(); }
+  const focus = today === 0 ? 1 : today;
+  box.innerHTML = [1,2,3,4,5,6].map(d => {
+    const dishes = (C.WEEKLY_MENU[d] || []).map(findDish).filter(Boolean);
+    const specials = (C.WEEKLY_SPECIALS || []).filter(sp => sp.day === d).map(sp => ({x: findDish(sp.dish), note: sp.note})).filter(o => o.x);
+    const label = d === today ? "Today" : (today === 0 && d === 1 ? "Next" : (d === (today % 7) + 1 ? "Tomorrow" : ""));
+    const dish = (x, extra) => `
+      <div class="wdish${extra ? " special" : ""}">
+        ${x.image ? `<div class="wimg"><img loading="lazy" src="${esc(x.image)}" alt="${esc(x.nameEn)}">${extra ? `<span class="wbadge">Special</span>` : ""}</div>` : ""}
+        <div class="wbody">
+          <h4>${esc(x.nameEn)}</h4>
+          ${x.nameFa ? `<span class="fa">${esc(x.nameFa)}</span>` : ""}
+          ${extra ? `<p class="wnote">${esc(extra)}</p>` : ""}
+          <div class="wrow"><span class="price">${money(x.price)}</span>${control(x)}</div>
+        </div>
+      </div>`;
+    return `<article class="day${d === focus ? " focus" : ""}" data-day="${d}">
+      <header><div><b>${WEEK_EN[d]}</b><span class="fa">${WEEK_FA[d]}</span></div>${label ? `<span class="today">${label}</span>` : ""}</header>
+      ${dishes.map(x => dish(x)).join("")}
+      ${specials.map(o => dish(o.x, o.note)).join("")}
+      ${!dishes.length && !specials.length ? `<p class="wnote" style="padding:16px">Menu coming soon</p>` : ""}
+    </article>`;
+  }).join("");
+  if (!renderWeekly.scrolled){
+    renderWeekly.scrolled = true;
+    const card = box.querySelector(".day.focus");
+    if (card) setTimeout(() => {
+      if (box.scrollWidth <= box.clientWidth + 4) return;
+      box.style.scrollSnapType = "none";
+      box.scrollLeft += card.getBoundingClientRect().left - box.getBoundingClientRect().left - 22;
+      setTimeout(() => { box.style.scrollSnapType = ""; }, 50);
+    }, 250);
+  }
+  const dn = $("#weekNote"); if (dn && C.DELIVERY_NOTE) dn.textContent = C.DELIVERY_NOTE;
+}
+function renderAll(){ renderWeekly(); renderFavs(); renderMenu(); }
 $("#q").addEventListener("input", renderMenu);
 
 /* ---------------- Drawer ---------------- */
