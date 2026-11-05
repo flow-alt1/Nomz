@@ -207,11 +207,16 @@ h2{font-size:clamp(32px,4.4vw,52px);line-height:1.08}
 .wbody .fa{color:var(--cocoa-soft);font-size:14px;text-align:left}
 .wnote{margin:4px 0 0;font-size:13px;font-weight:600;color:var(--crocus)}
 .wdish.special{background:color-mix(in srgb,var(--crocus) 6%,var(--paper))}
-.wrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:10px}
+.wrow{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:10px}
 .wrow .add{padding:8px 16px}
 .wrow .step button{width:36px;height:36px}
 .week-note{display:flex;align-items:flex-start;gap:8px;color:var(--cocoa-soft);font-size:15px;margin:6px 0 0}
 .week-note svg{flex:none;margin-top:3px;color:var(--barberry)}
+.avail{display:inline-flex;align-items:center;padding:7px 12px;border-radius:999px;background:color-mix(in srgb,var(--cocoa) 7%,transparent);color:var(--cocoa-soft);font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+a.avail{background:color-mix(in srgb,var(--barberry) 10%,transparent);color:var(--barberry)}
+.fav .avail{background:rgba(255,255,255,.18);color:#fff}
+.dlv{color:var(--barberry)}
+.day:not(.open) .wimg img{filter:saturate(.85)}
 .daychips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
 .daychip{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--saffron) 22%,transparent);color:var(--cocoa)}
 .daychip.pre{background:color-mix(in srgb,var(--crocus) 15%,transparent);color:var(--crocus)}
@@ -666,6 +671,13 @@ function cartCount(){ return cartLines().reduce((s,l) => s + l.q, 0); }
 function cartTotal(){ return cartLines().reduce((s,l) => s + (Number(l.item.price)||0) * l.q, 0); }
 
 function control(it){
+  if (!byId(it.id)) return `<a class="avail" href="tel:+12028884120">Call to order</a>`;
+  const dd = deliveryDay(it);
+  if (dd === -1){
+    const days = dishDays(it), sp = specialFor(it);
+    if (sp && /pre-?order/i.test(sp.note || "") && days.includes(orderWindow().today)) return `<span class="avail">Pre-order the day before</span>`;
+    return `<span class="avail" title="This dish is cooked on ${days.map(d => WEEK_EN[d]).join(" and ")}">Available ${days.map(d => WEEK_EN[d]).join(" & ")}</span>`;
+  }
   const q = qty(it.id);
   if (!q) return `<button class="add" type="button" data-add="${esc(it.id)}" aria-label="Add ${esc(it.nameEn)}">Add</button>`;
   return `<span class="step" role="group" aria-label="${esc(it.nameEn)} quantity">
@@ -770,16 +782,17 @@ function findDish(ref){
     || MENU.find(x => normName(x.nameEn) === n)
     || MENU.find(x => normName(x.nameEn).startsWith(n) || n.startsWith(normName(x.nameEn)));
   if (!hit){
-    const words = n.split(" ").filter(w => w.length > 2);
+    const words = n.split(" ").filter(w => w.length > 2 && !["with","and","the"].includes(w));
     let best = null, bestScore = 0;
     MENU.forEach(x => {
       const xs = " " + normName(x.nameEn) + " ";
+      if (words[0] && !xs.includes(" " + words[0] + " ")) return;
       const score = words.filter(w => xs.includes(" " + w + " ")).length / (words.length || 1);
       if (score > bestScore){ best = x; bestScore = score; }
     });
-    if (bestScore >= .75) hit = best;
+    if (bestScore >= 1) hit = best;
   }
-  if (!hit && def) hit = clean([{...def, available: true}])[0]; // never leave a day empty
+  if (!hit && def) hit = clean([{...def, available: true}])[0]; // show it, but it can't be ordered online
   if (!hit) console.warn("Weekly menu: no dish found for", ref);
   return (dishCache[ref] = hit || null);
 }
@@ -795,15 +808,49 @@ function dayChips(x){
   if (!d.length) return "";
   return `<div class="daychips">${d.map(n => `<span class="daychip">${WEEK_EN[n]}s</span>`).join("")}${sp ? `<span class="daychip pre">Pre-order</span>` : ""}</div>`;
 }
+function orderWindow(){
+  let day = new Date().getDay(), hour = new Date().getHours();
+  try { const t = nowInTz(); day = t.day; hour = t.hour; } catch(e){}
+  const H = C.HOURS || {}, win = [];
+  if (H[day] && hour < H[day][1]) win.push(day);
+  for (let i = 1; i <= 7; i++){ const d = (day + i) % 7; if (H[d]){ win.push(d); break; } }
+  return {today: day, days: win};
+}
+function dayLabel(d){
+  const {today} = orderWindow();
+  if (d === today) return "Today";
+  if (d === (today + 1) % 7) return "Tomorrow";
+  return WEEK_EN[d] || "";
+}
+// When will this dish be delivered? null = any day (not on the weekly schedule)
+function deliveryDay(x){
+  const days = dishDays(x);
+  if (!days.length) return null;
+  const {today, days: win} = orderWindow();
+  const sp = specialFor(x), preorder = sp && /pre-?order/i.test(sp.note || "");
+  return win.find(d => days.includes(d) && !(preorder && d === today)) ?? -1;   // -1 = not orderable now
+}
+// Weekly cards: when a dish isn't orderable yet, say when ordering opens (the kitchen day before)
+function weekControl(x, d){
+  if (!byId(x.id) || deliveryDay(x) !== -1) return control(x);
+  const sp = specialFor(x), pre = sp && /pre-?order/i.test(sp.note || "");
+  if (pre && d === orderWindow().today) return `<span class="avail">Sold by pre-order</span>`;
+  let p = d;
+  for (let i = 1; i <= 7; i++){ p = (d - i + 7) % 7; if ((C.HOURS || {})[p]) break; }
+  return `<span class="avail">Order from ${WEEK_EN[p].slice(0, 3)}</span>`;
+}
+function canOrder(x){ return !!byId(x.id) && deliveryDay(x) !== -1; }
+
 function renderWeekly(){
   const box = $("#week"); if (!box || !C.WEEKLY_MENU) return;
   let today = 1;
   try { today = nowInTz().day; } catch(e){ today = new Date().getDay(); }
-  const focus = today === 0 ? 1 : today;
+  const focus = orderWindow().days[0] || 1;
   box.innerHTML = [1,2,3,4,5,6].map(d => {
     const dishes = (C.WEEKLY_MENU[d] || []).map(findDish).filter(Boolean);
     const specials = (C.WEEKLY_SPECIALS || []).filter(sp => sp.day === d).map(sp => ({x: findDish(sp.dish), note: sp.note})).filter(o => o.x);
-    const label = d === today ? "Today" : (today === 0 && d === 1 ? "Next" : (d === (today % 7) + 1 ? "Tomorrow" : ""));
+    const win = orderWindow().days;
+    const label = win.includes(d) ? (d === today ? "Today" : (d === (today + 1) % 7 ? "Tomorrow" : "Next")) : "";
     const dish = (x, extra) => `
       <div class="wdish${extra ? " special" : ""}">
         ${x.image ? `<div class="wimg"><img loading="lazy" src="${esc(x.image)}" alt="${esc(x.nameEn)}">${extra ? `<span class="wbadge">Special</span>` : ""}</div>` : ""}
@@ -811,10 +858,10 @@ function renderWeekly(){
           <h4>${esc(String(x.nameEn).split("|")[0].trim())}</h4>
           ${x.nameFa ? `<span class="fa">${esc(x.nameFa)}</span>` : ""}
           ${extra ? `<p class="wnote">${esc(extra)}</p>` : ""}
-          <div class="wrow"><span class="price">${money(x.price)}</span>${control(x)}</div>
+          <div class="wrow"><span class="price">${money(x.price)}</span>${weekControl(x, d)}</div>
         </div>
       </div>`;
-    return `<article class="day${d === focus ? " focus" : ""}" data-day="${d}">
+    return `<article class="day${d === focus ? " focus" : ""}${win.includes(d) ? " open" : ""}" data-day="${d}">
       <header><div><b>${WEEK_EN[d]}</b><span class="fa">${WEEK_FA[d]}</span></div>${label ? `<span class="today">${label}</span>` : ""}</header>
       ${dishes.map(x => dish(x)).join("")}
       ${specials.map(o => dish(o.x, o.note)).join("")}
@@ -876,7 +923,7 @@ function renderCart(){
   body.innerHTML = lines.map(({item:x, q}) => `
     <div class="line">
       ${x.image ? `<img src="${esc(x.image)}" alt="">` : `<span></span>`}
-      <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}</small></div>
+      <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}${(() => { const d = deliveryDay(x); return d != null && d !== -1 && d !== orderWindow().today ? ` · <b class="dlv">Delivered ${esc(dayLabel(d).toLowerCase() === "tomorrow" ? "tomorrow" : WEEK_EN[d])}</b>` : ""; })()}</small></div>
       <span class="step"><button type="button" data-dec="${esc(x.id)}" aria-label="Remove one ${esc(x.nameEn)}">&minus;</button><span>${q}</span><button type="button" data-inc="${esc(x.id)}" aria-label="Add one ${esc(x.nameEn)}">+</button></span>
     </div>`).join("") + `
     <button class="back" type="button" onclick="document.getElementById('closeDrawer').click()">+ Add more dishes</button>
@@ -958,6 +1005,14 @@ function maybeQuote(){
   }, 600);
 }
 
+// e.g. "[Deliver Thursday: Ghormeh Sabzi Stew x2] "
+function deliveryNote(){
+  const {today} = orderWindow(), groups = {};
+  cartLines().forEach(l => { const d = deliveryDay(l.item); if (d != null && d !== -1 && d !== today) (groups[d] = groups[d] || []).push(l.item.nameEn + (l.q > 1 ? " x" + l.q : "")); });
+  const parts = Object.keys(groups).map(d => `Deliver ${WEEK_EN[d]}: ${groups[d].join(", ")}`);
+  return parts.length ? `[${parts.join(" | ")}] ` : "";
+}
+
 function checkCustomer(){
   const digits = String(cust.phone).replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
   if (!cust.name.trim()) return ["name", "Please add your name."];
@@ -974,6 +1029,11 @@ async function startCheckout(){
   const btn = $("#payBtn"), err = $("#payErr");
   err.hidden = true;
   $("#drawerBody").querySelectorAll(".bad").forEach(e => e.classList.remove("bad"));
+  const off = cartLines().filter(l => deliveryDay(l.item) === -1);
+  if (off.length){
+    err.textContent = `${off.map(l => l.item.nameEn).join(", ")} ${off.length > 1 ? "are" : "is"} not available to order right now. Please remove ${off.length > 1 ? "them" : "it"} from your order.`;
+    err.hidden = false; return;
+  }
   const problem = checkCustomer();
   if (problem){
     const el = $(`[data-c="${problem[0]}"]`);
@@ -991,7 +1051,7 @@ async function startCheckout(){
       body: JSON.stringify({
         action: "checkout",
         items: cartLines().map(l => ({id: l.item.id, qty: l.q})),
-        method: orderType, note: orderNote,
+        method: orderType, note: deliveryNote() + orderNote,
         customer: { name: cust.name, phone: cust.phone,
           address: isDelivery() ? { line1: cust.line1, line2: cust.line2, city: cust.city, state: cust.state || "VA", zip: cust.zip } : null },
         returnUrl: location.origin + location.pathname + "?order=done"
