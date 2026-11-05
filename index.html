@@ -633,7 +633,9 @@ function clean(list){
     .map(x => ({...x, price: x.price === "" ? "" : Number(x.price), featured: x.featured === true || String(x.featured) === "true"}))
     .sort((a,b) => (Number(a.sort)||999) - (Number(b.sort)||999));
 }
-const byId = id => MENU.find(x => x.id === id);
+// Dishes from the live menu, or (for weekly-menu dishes the live menu doesn't list) the built-in menu
+let DEF_CLEAN = null;
+const byId = id => MENU.find(x => x.id === id) || (DEF_CLEAN = DEF_CLEAN || clean(window.NOMZ_DEFAULT_MENU || [])).find(x => x.id === id);
 
 async function loadLive(){
   if (!C.API_URL) return;
@@ -663,7 +665,7 @@ function setQty(id, n, silent){
   if (!silent && n > before){
     const it = byId(id);
     const n = it ? nextCook(it) : null;
-    toast(`Added ${it ? it.nameEn : "dish"}${n && n.i > 0 ? ` · delivered ${whenLabel(n)}` : ""}`);
+    toast(`Added ${it ? it.nameEn : "dish"}${n && n.i > 0 ? ` · will be delivered ${whenLabel(n)}` : ""}`);
     const b = $("#cartBtn"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
   }
 }
@@ -672,7 +674,7 @@ function cartCount(){ return cartLines().reduce((s,l) => s + l.q, 0); }
 function cartTotal(){ return cartLines().reduce((s,l) => s + (Number(l.item.price)||0) * l.q, 0); }
 
 function control(it){
-  if (!byId(it.id)) return `<a class="avail" href="tel:+12028884120">Call to order</a>`;
+  if (!byId(it.id) || it.price === "" || it.price == null) return `<a class="avail" href="tel:+12028884120">Call to order</a>`;
   const q = qty(it.id);
   if (!q) return `<button class="add" type="button" data-add="${esc(it.id)}" aria-label="Add ${esc(it.nameEn)}">Add</button>`;
   return `<span class="step" role="group" aria-label="${esc(it.nameEn)} quantity">
@@ -789,15 +791,16 @@ function findDish(ref){
   }
   if (!hit && def) hit = clean([{...def, available: true}])[0]; // show it, but it can't be ordered online
   if (!hit) console.warn("Weekly menu: no dish found for", ref);
+  else if (!MENU.includes(hit)) console.info("Weekly menu: \"" + ref + "\" isn't in the live menu (hidden or renamed in admin?) - using the built-in copy");
   return (dishCache[ref] = hit || null);
 }
 function dishDays(x){
   const days = [];
-  Object.entries(C.WEEKLY_MENU || {}).forEach(([d, refs]) => { if (refs.some(r => findDish(r) === x)) days.push(Number(d)); });
-  (C.WEEKLY_SPECIALS || []).forEach(sp => { if (findDish(sp.dish) === x && !days.includes(sp.day)) days.push(sp.day); });
+  Object.entries(C.WEEKLY_MENU || {}).forEach(([d, refs]) => { if (refs.some(r => (findDish(r) || {}).id === x.id)) days.push(Number(d)); });
+  (C.WEEKLY_SPECIALS || []).forEach(sp => { if ((findDish(sp.dish) || {}).id === x.id && !days.includes(sp.day)) days.push(sp.day); });
   return days.sort();
 }
-const specialFor = x => (C.WEEKLY_SPECIALS || []).find(sp => findDish(sp.dish) === x);
+const specialFor = x => (C.WEEKLY_SPECIALS || []).find(sp => (findDish(sp.dish) || {}).id === x.id);
 function dayChips(x){
   const d = dishDays(x), sp = specialFor(x);
   if (!d.length) return "";
@@ -931,7 +934,7 @@ function renderCart(){
   body.innerHTML = lines.map(({item:x, q}) => `
     <div class="line">
       ${x.image ? `<img src="${esc(x.image)}" alt="">` : `<span></span>`}
-      <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}${(() => { const n = nextCook(x); return n && n.i > 0 ? `<br><b class="dlv">Delivered ${esc(whenLabel(n))}</b>` : ""; })()}</small></div>
+      <div><h4>${esc(x.nameEn)}</h4><small>${money(x.price)}${x.price !== "" ? " each" : ""}${(() => { const n = nextCook(x); return n && n.i > 0 ? `<br><b class="dlv">Will be delivered ${esc(whenLabel(n))}</b>` : ""; })()}</small></div>
       <span class="step"><button type="button" data-dec="${esc(x.id)}" aria-label="Remove one ${esc(x.nameEn)}">&minus;</button><span>${q}</span><button type="button" data-inc="${esc(x.id)}" aria-label="Add one ${esc(x.nameEn)}">+</button></span>
     </div>`).join("") + `
     <button class="back" type="button" onclick="document.getElementById('closeDrawer').click()">+ Add more dishes</button>
@@ -1059,7 +1062,7 @@ async function startCheckout(){
     const r = await fetch(C.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
       body: JSON.stringify({
         action: "checkout",
-        items: cartLines().map(l => ({id: l.item.id, qty: l.q})),
+        items: cartLines().map(l => ({id: l.item.id, qty: l.q, name: l.item.nameEn})),
         method: orderType, note: deliveryNote() + orderNote,
         customer: { name: cust.name, phone: cust.phone,
           address: isDelivery() ? { line1: cust.line1, line2: cust.line2, city: cust.city, state: cust.state || "VA", zip: cust.zip } : null },
