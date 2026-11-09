@@ -993,6 +993,7 @@ function renderCart(){
           <label class="cf"><span>State</span><select data-c="state" autocomplete="address-level1">${["VA","DC","MD"].map(s => `<option ${cust.state===s?"selected":""}>${s}</option>`).join("")}</select></label>
           ${fld("zip", "ZIP code", {attrs: 'inputmode="numeric" autocomplete="postal-code" maxlength="10" required'})}
         </div>` : ""}
+      ${slotField()}
     </div>
     <label class="onote"><span>${isDelivery() ? "Note for the kitchen or driver" : "Note for the kitchen"} <em>(optional)</em></span>
       <textarea id="orderNote" rows="2" maxlength="300" placeholder="${isDelivery() ? "Gate code, allergies, extra rice…" : "Allergies, extra rice, pickup time…"}">${esc(orderNote)}</textarea></label>`;
@@ -1001,6 +1002,7 @@ function renderCart(){
   body.querySelectorAll("[data-type]").forEach(b => b.onclick = () => { orderType = b.dataset.type; renderCart(); });
   body.querySelectorAll("[data-c]").forEach(el => el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => { cust[el.dataset.c] = el.value; saveCust(); el.classList.remove("bad"); const e = $("#payErr"); if (e) e.hidden = true; if (["line1","city","state","zip"].includes(el.dataset.c)) maybeQuote(); }));
   $("#orderNote").oninput = e => { orderNote = e.target.value; };
+  const ss = $("#slotSel"); if (ss) ss.onchange = () => { slotValue = ss.value; };
   maybeQuote();
 }
 
@@ -1068,6 +1070,54 @@ function deliveryNote(){
   return `[${parts.join(" | ")}] `;
 }
 
+/* ---- preferred delivery time ---- */
+let slotValue = "";
+// First delivery day for this cart: the earliest dish's cooking day, else today (or the next open day)
+function deliveryPlan(){
+  const {today} = orderWindow(), H = C.HOURS || {};
+  let hour = new Date().getHours() + new Date().getMinutes() / 60;
+  try { hour = nowInTz().hour; } catch(e){}
+  let best = null;
+  cartLines().forEach(l => { const n = nextCook(l.item); if (n && (!best || n.i < best.i)) best = n; });
+  if (!best){
+    for (let i = 0; i <= 7; i++){ const d = (today + i) % 7; if (!H[d]) continue; if (i === 0 && hour >= H[d][1] - 0.5) continue; best = {d, i}; break; }
+  }
+  return best ? Object.assign(best, {hour}) : null;
+}
+function fmtHour(h){ return (h % 12 || 12) + ":00"; }
+function slotChoices(){
+  const p = deliveryPlan(); if (!p) return {p, list: []};
+  const H = (C.HOURS || {})[p.d]; if (!H) return {p, list: []};
+  const list = [];
+  if (p.i === 0 && p.hour >= H[0] && p.hour < H[1] - 0.5) list.push({v: "asap", label: "As soon as possible"});
+  for (let h = H[0]; h < H[1]; h++){
+    if (p.i === 0 && h < p.hour + 1) continue;           // need about an hour to cook and drive
+    const a = h >= 12 ? "pm" : "am", b = h + 1 >= 12 ? "pm" : "am";
+    list.push({v: String(h), h, label: a === b ? `${fmtHour(h)} – ${fmtHour(h + 1)} ${b}` : `${fmtHour(h)} ${a} – ${fmtHour(h + 1)} ${b}`});
+  }
+  return {p, list};
+}
+function isoDate(i){
+  try { return new Intl.DateTimeFormat("en-CA", {timeZone: C.TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit"}).format(new Date(Date.now() + i * 864e5)); }
+  catch(e){ return ""; }
+}
+function slotField(){
+  if (!isDelivery()) return "";
+  const {p, list} = slotChoices();
+  if (!p || !list.length) return "";
+  if (!list.some(o => o.v === slotValue)) slotValue = list[0].v;
+  const dayTxt = p.i === 0 ? "today" : p.i === 1 ? "tomorrow" : `${WEEK_EN[p.d]}, ${cookDate(p.i).replace(/^\w+, /, "")}`;
+  return `<label class="cf"><span>Delivery time <em>(${esc(dayTxt)})</em></span>
+    <select id="slotSel">${list.map(o => `<option value="${o.v}" ${o.v === slotValue ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>`;
+}
+function slotPayload(){
+  const {p, list} = slotChoices();
+  const o = list.find(x => x.v === slotValue) || list[0];
+  if (!p || !o) return {};
+  const day = p.i === 0 ? cookDate(0) + " (today)" : cookDate(p.i);
+  return { window: `${day} · ${o.label}`, windowDate: o.v === "asap" ? "" : isoDate(p.i), windowHour: o.v === "asap" ? "" : o.h };
+}
+
 function checkCustomer(){
   const digits = String(cust.phone).replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
   if (!cust.name.trim()) return ["name", "Please add your name."];
@@ -1104,6 +1154,7 @@ async function startCheckout(){
         method: orderType, note: deliveryNote() + orderNote,
         customer: { name: cust.name, phone: cust.phone,
           address: isDelivery() ? { line1: cust.line1, line2: cust.line2, city: cust.city, state: cust.state || "VA", zip: cust.zip } : null },
+        ...slotPayload(),
         returnUrl: location.origin + location.pathname + "?order=done"
       })});
     const j = await r.json();
